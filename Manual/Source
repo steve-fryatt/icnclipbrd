@@ -1,6 +1,6 @@
 <document title="IcnClipBrd">
-<define name="version" value="0.14">
-<define name="date" value="04 July 2009" length=20 align="right">
+<define name="version" value="0.15">
+<define name="date" value="05 July 2009" length=20 align="right">
 
 
 
@@ -90,7 +90,7 @@ In addition to the above, two further keypresses are disabled by default but can
 <li><key>Ctrl-T</key> inserts the date and/or time into the icon.
 </list>
 
-By default, dates are in the format DD Mmm YYYY, but other formats (including current time) can be defined using the Alarm format field names by setting them into the &lt;IcnClipBrd$DateFormat&gt; system variable.
+By default, dates are in the format DD Mmm YYYY, but other formats (including current time) can be defined using the Alarm format field names by setting them into the &lt;IcnClipBrd$DateFormat&gt; system variable. If an error is encountered when using the contents of the variable, its contents is pasted into the icon instead of a date.
 
 
 <subhead title="Configuring the module">
@@ -107,7 +107,7 @@ Without a parameter, the command prints a list of the keys currently being inter
 
 </comdef>
 
-To adjust the format of the dates inserted by <key>Ctrl-T</key>, the system variable &lt;IcnClipBrd$DateFormat&gt; can be set.  The variable takes the 'Alarm-style' date format field names; the default format is DD Mmm YYYY, which would be set as <code>%DY %M3 %CE%YR</code>.
+To adjust the format of the dates inserted by <key>Ctrl-T</key>, the system variable &lt;IcnClipBrd$DateFormat&gt; can be set.  The variable takes the 'Alarm-style' date format field names; the default format is DD Mmm YYYY, which would be set as <code>%DY %M3 %CE%YR</code>. If an error is encountered when <cite>IcnClipBrd</cite> tries to parse the string, the string itself will be pasted into the icon at the caret.
 
 The <file>!IcnClpBrd</file> application contains an obey file called <file>Configure</file>, which calls the <command>*IcnClipBrdKeys</command> command and sets the system variable; this allows the keys to be set and the date format configured when the module is loaded.  Load the file into a text editor to modify it.
 
@@ -221,6 +221,12 @@ Limited issue for test purposes.
 <li>Fixed serious bug when pasting more than 128 characters by RAM Transfer, identified by Fred Graute.
 </list>
 
+
+<subhead title="0.15 (05 July 2009)">
+
+<list>
+<li>Date insertion now works correctly with custom format strings.
+</list>
 
 <literal mode="Text">
 
