@@ -9,7 +9,7 @@
 | IcnClipBrd to intercept that key.
 |
 | 2_1111111111 enables all keypresses.  To disable Ctrl-D, Ctrl-E and Ctrl-K,
-| use 2_1111110001
+| and enable Ctrl-S and Ctrl-T, use 2_1111110001
 
 IcnClipBrdKeys 2_0011111111
 
