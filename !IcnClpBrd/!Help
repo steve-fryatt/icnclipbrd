@@ -1,7 +1,7 @@
 =============================================================================
-IcnClipBrd - Global Clipboard in writable icons                  Version 0.11
+IcnClipBrd - Global Clipboard in writable icons                  Version 0.12
 
-(C) Thomas Leonard, 1999, Stephen Fryatt 2007                    18 June 2007
+(C) Thomas Leonard, 1999, Stephen Fryatt 2007                   8 August 2007
 =============================================================================
 
 
@@ -169,6 +169,12 @@ Version History
   * Command *IcnClipBrdKeys added to allow individual keypresses to be
     disabled.
   * Further tweaks made to data transfer code.
+
+
+  0.12 (8 August 2007)
+  --------------------
+
+  * Fixed pasting of top-bit characters received via RAM Transfer.
 
 
 
