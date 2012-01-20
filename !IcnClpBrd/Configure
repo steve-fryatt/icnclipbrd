@@ -1,0 +1,14 @@
+| >Configure
+|
+| Configuration file for IcnClipBrd
+
+| Set the options for the module.
+
+| Configure the keys that are intercepted.  The 8 bits in the number
+| correspond to the 8 Ctrl keys: 2_ZXVQKEDC.  Setting a bit causes
+| IcnClipBrd to intercept that key.
+|
+| 2_11111111 enables all keypresses.  To disable Ctrl-D, Ctrl-E and Ctrl-K,
+| use 2_11110001
+
+IcnClipBrdKeys 2_11111111
