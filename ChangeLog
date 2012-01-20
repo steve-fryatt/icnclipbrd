@@ -1,0 +1,54 @@
+To Do
+-----
+
+* (?) Fix RAM transfers.
+* (?) Sort out Wimp slot detection for Iyonix.
+* Deal with the remaining highlighted issues in the code.
+
+
+0.10 (14-07-2007)
+-----------------
+
+* Code tidied, commented and made more maintainable.
+* Fixed some possible 32-bit flag-preservation issues.
+* Fixed YourRef on Message_DataLoadAck (James Peacock).
+* Fixed task handle on Message_RAMFetch in RAMTransmit handler.
+* WimpSlot detected using OS_ReadDynamicArea,-1 (not RO3.1 OK any more).
+* RAM Transfer code reinstated.
+
+
+0.11 (18-07-2007)
+-----------------
+
+* The use of R2 and R5 reversed in the Message_DataRequest handler.
+* Keypresses made configurable, with *IcnClipBrdKeys added to control.
+
+
+0.12 (08-08-2007)
+-----------------
+
+* Fixed top-bit set characters in RAM XFer paste routine.
+
+
+0.13 (26-10-2007)
+-----------------
+
+* Converted case change code to use Territory module.
+* Identify alphabetic chars using Territory module.
+* Added Ctrl-S to swap case.
+* Changed top-bit detection in RMA paste loop.
+* Added Ctrl-T to insert date.
+
+
+0.14 (04-07-2009)
+-----------------
+
+* Second call to Wimp_SendMessage in MessageHandlerRAMTransmit now correctly sets R1 before filling in the block (Fred Graute).
+
+
+0.15 (05-07-2009)
+-----------------
+
+* Date format string correctly terminated (STRB, not STR) when read from IcnClipBrd$DateFormat (Fred Graute).
+* Error checking in date read routines added.
+* IcnClipBrd$DateFormat name terminated correctly.

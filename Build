@@ -1,0 +1,9 @@
+Set ICBMake$Dir <Obey$Dir>
+
+ObjAsm <ICBMake$Dir>.s.IconClipBrd32 -throwback -NoCache -desktop ^ -ABSolute -o <ICBMake$Dir>.o.IconClipBrd32
+
+Link <ICBMake$Dir>.o.IconClipBrd32 -bin -c++ -o <ICBMake$Dir>.!IcnClpBrd.IcnClipBrd
+
+SetType <ICBMake$Dir>.!IcnClpBrd.IcnClipBrd Module
+
+Unset ICBMake$Dir

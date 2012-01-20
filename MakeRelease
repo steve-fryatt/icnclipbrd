@@ -1,0 +1,15 @@
+Set Release$Dir <Obey$Dir>.Release
+
+Wipe <Release$Dir>.!IcnClpBrd ~CFRV
+
+Copy <Release$Dir>.^.!IcnClpBrd <Release$dir>.!IcnClpBrd ~CRV
+
+Remove <Release$Dir>.ReadMe
+
+TextMerge <Release$Dir>.ReadMe <Release$Dir>.!IcnClpBrd.!Help <Release$Dir>.^.Manual.Header 5
+
+Wipe <Release$Dir>.s ~CFRV
+
+Copy <Release$Dir>.^.s <Release$dir>.s ~CRV
+
+Unset Release$Dir
