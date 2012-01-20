@@ -1,6 +1,6 @@
 <document title="IcnClipBrd">
-<define name="version" value="0.15">
-<define name="date" value="05 July 2009" length=20 align="right">
+<define name="version" value="0.16">
+<define name="date" value="20 January 2012" length=20 align="right">
 
 
 
@@ -227,6 +227,15 @@ Limited issue for test purposes.
 <list>
 <li>Date insertion now works correctly with custom format strings.
 </list>
+
+
+<subhead title="0.16 (20 January 2012)">
+
+<list>
+<li>Fixed unaligned memory access in Ctrl-S and Ctrl-D routines.
+</list>
+
+</chapter>
 
 <literal mode="Text">
 
