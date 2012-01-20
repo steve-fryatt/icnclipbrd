@@ -4,11 +4,17 @@
 
 | Set the options for the module.
 
-| Configure the keys that are intercepted.  The 8 bits in the number
-| correspond to the 8 Ctrl keys: 2_ZXVQKEDC.  Setting a bit causes
+| Configure the keys that are intercepted.  The 10 bits in the number
+| correspond to the 10 Ctrl keys: 2_TSZXVQKEDC.  Setting a bit causes
 | IcnClipBrd to intercept that key.
 |
-| 2_11111111 enables all keypresses.  To disable Ctrl-D, Ctrl-E and Ctrl-K,
-| use 2_11110001
+| 2_1111111111 enables all keypresses.  To disable Ctrl-D, Ctrl-E and Ctrl-K,
+| use 2_1111110001
 
-IcnClipBrdKeys 2_11111111
+IcnClipBrdKeys 2_0011111111
+
+| Configure the format of dates inserted by Ctrl-T (if enabled).  If the line
+| below is commented out, the format DD Mmm YYYY will be used.  Remove the
+| comment character from the start and alter the format string as required.
+
+| Set IcnClipBrd$DateFormat %WE %DY%ST %MO %CE%YR

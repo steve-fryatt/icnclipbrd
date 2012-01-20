@@ -1,7 +1,7 @@
 =============================================================================
-IcnClipBrd - Global Clipboard in writable icons                  Version 0.12
+IcnClipBrd - Global Clipboard in writable icons                  Version 0.13
 
-(C) Thomas Leonard, 1999, Stephen Fryatt 2007                   8 August 2007
+(C) Thomas Leonard, 1999, Stephen Fryatt 2007                 27 October 2007
 =============================================================================
 
 
@@ -81,29 +81,65 @@ Using the module
   using Ctrl-U, as usual.  Ctrl-End will delete the text from the caret to
   the end of the icon.
 
+  In addition to the above, two further keypresses are disabled by default
+  but can be configured into use:
 
-  Configuring the keypresses
-  --------------------------
+  * Ctrl-S swaps the case of the character in front of the caret.
+  * <Key>Ctrl-T</key> inserts the date and/or time into the icon.
 
-  By default, IcnClipBrd will intercept all of the keypresses listed above.
-  This can be configured by the "*IcnClipBrdKeys" command.
+  By default, dates are in the format DD Mmm YYYY, but other formats
+  (including current time) can be defined using the Alarm format field names
+  by setting them into the <IcnClipBrd$DateFormat> system variable.
+
+
+  Configuring the module
+  ----------------------
+
+  By default, IcnClipBrd will intercept all of the keypresses listed above
+  except for Ctrl-S and Ctrl-T.  This can be configured by the
+  "*IcnClipBrdKeys" command.
 
   *IcnClipBrdKeys [<new keys>]
 
     The command "*IcnClipBrdKeys" is used to change the keys that the module
     intercepts, or to display the current configuration.
 
-    The <new keys> parameter is an 8-bit binary number, constructed as
-    2_ZXVQKEDC for the eight Ctrl keys.  Thus, enabling only the keys Ctrl-C,
+    The <new keys> parameter is a 10-bit binary number, constructed as
+    2_TSZXVQKEDC for the ten Ctrl keys.  Thus, enabling only the keys Ctrl-C,
     Ctrl-Q, Ctrl-V, Ctrl-X and Ctrl-Z would require the parameter
-    "2_11110001" (or "&F1", or "241").
+    "2_0011110001" (or "&F1", or "241").
 
     Without a parameter, the command prints a list of the keys currently
     being intercepted.
 
+  To adjust the format of the dates inserted by Ctrl-T, the system variable
+  <IcnClipBrd$DateFormat> can be set.  The variable takes the 'Alarm-style'
+  date format field names; the default format is DD Mmm YYYY, which would be
+  set as "%DY %M3 %CE%YR".
+
   The !IcnClpBrd application contains an obey file called Configure, which
-  calls the "*IcnClipBrdKeys" command; this allows the keys to be set when
-  the module is loaded.  Load the file into a text editor to modify it.
+  calls the "*IcnClipBrdKeys" command and sets the system variable; this
+  allows the keys to be set and the date format configured when the module is
+  loaded.  Load the file into a text editor to modify it.
+
+
+
+Bugs and known issues
+---------------------
+
+  Although there are currently no reported bugs in IcnClipBrd, the following
+  issues are known to exist:
+
+  * Following corrections made to IcnClipBrd's handling of the data transfer
+    protocol in version 0.11, a conflict with StrongED has appeared.  When
+    pasting text from StrongED into an icon in a menu or transient dialogue
+    box, the target window will close and the text will be pasted into the
+    wrong location.  Hopefully this issue should be resolved in a future
+    version of StrongED.
+
+  * There are problems pasting text into icons in older versions of NetSurf.
+    The problem has been resolved in the NetSurf release versions 1.0 and
+    1.1, along with all recent (April 2007 onwards) test builds.
 
 
 
@@ -175,6 +211,15 @@ Version History
   --------------------
 
   * Fixed pasting of top-bit characters received via RAM Transfer.
+
+
+  0.13 (27 October 2007)
+  ----------------------
+
+  * Uses Territory module for character conversions.
+  * Added Ctrl-S to swap case in icons.
+  * Added Ctrl-T to insert date and/or time into icons.
+  * Further tweaks to top-bit detection in character insert routines.
 
 
 
