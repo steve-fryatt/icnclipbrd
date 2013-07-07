@@ -969,35 +969,35 @@ PostFilterCutCopyLoopExit
 ; On entry R14=Keypress.
 
 PostFilterPasteReplace
-        CMP     R14,#&1A			; If the keypress was Ctrl-Z, we insert a Ctrl-U into
+	CMP	R14,#&1A			; If the keypress was Ctrl-Z, we insert a Ctrl-U into
 	MOV	R0,#&8A				; the keyboard buffer to wipe the old text.
 	MOV	R1,#0
 	MOVEQ	R2,#&15
 	SWIEQ	XOS_Byte
 
-        LDR     R4,[R12,#WS_ContentPtr]         ; Check if we own the clipboard.  If we do, we can
-        CMP     R4,#0				; just insert the text from the RMA.  If we don't...
-        BNE     PostFilterPasteReplaceInsert
+	LDR	R4,[R12,#WS_ContentPtr]		; Check if we own the clipboard.  If we do, we can
+	CMP	R4,#0				; just insert the text from the RMA.  If we don't...
+	BNE	PostFilterPasteReplaceInsert
 
-        MOV     R0,#&56                         ; ...we need to set the pollword so that we can send
-        STR     R0,[R12,#WS_PollWord]		; a message for the clipboard contents when we next
-        LDMFD   R13!,{R0-R4,PC}			; get into the Wimp_Poll loop.
+	MOV	R0,#&56				; ...we need to set the pollword so that we can send
+	STR	R0,[R12,#WS_PollWord]		; a message for the clipboard contents when we next
+	LDMFD	R13!,{R0-R4,PC}			; get into the Wimp_Poll loop.
 
 PostFilterPasteReplaceInsert
-        LDRB    R2,[R4],#1			; R4 points to the clipboard contents in RMA, so start
-        CMP     R2,#0				; to insert the text into the keyboard buffer until a
-        LDMEQFD R13!,{R0-R4,PC}			; zero byte is found.
+	LDRB	R2,[R4],#1			; R4 points to the clipboard contents in RMA, so start
+	CMP	R2,#0				; to insert the text into the keyboard buffer until a
+	LDMEQFD R13!,{R0-R4,PC}			; zero byte is found.
 
 	TST	R2,#&80				; If the top bit is set, prefix with a zero byte.
-        BEQ	PostFilterPasteReplaceInsertSkip
-        MOV     R2,#0
-        SWI     XOS_Byte
-        LDRB    R2,[R4,#-1]
+	BEQ	PostFilterPasteReplaceInsertSkip
+	MOV	R2,#0
+	SWI	XOS_Byte
+	LDRB	R2,[R4,#-1]
 
 PostFilterPasteReplaceInsertSkip
-        SWI     XOS_Byte			; Insert the string into the kayboard buffer.
-        LDMCSFD R13!,{R0-R4,PC}
-        B       PostFilterPasteReplaceInsert
+	SWI	XOS_Byte			; Insert the string into the kayboard buffer.
+	LDMCSFD	R13!,{R0-R4,PC}
+	B	PostFilterPasteReplaceInsert
 
 ; ==========================================================================================================================================
 ; Insert Date
@@ -1040,7 +1040,7 @@ PostFilterInsertDateReadTime
 PostFilterInsertDateExit
 	MOVVC	R4,R0				; Point R4 to the string, and set up R0 and R1 ready for OS_Byte &8A before jumping
 	MOV	R0,#&8A				; to the insert text loop.  If the conversion failed, R4 is left pointing to the
-	MOV	R1,#0                           ; format string (so that will be inserted instead).
+	MOV	R1,#0				; format string (so that will be inserted instead).
 	B	PostFilterPasteReplaceInsert
 
 InsertDateFormat
@@ -1056,16 +1056,16 @@ InsertDateFormatVar
 ; Release the module area space used by the clipboard contents.
 
 FreeClipboardContents
-        STMFD   R13!,{R0-R2,R14}		; Check that we currently have something on the clipboard.
-        LDR     R2,[R12,#WS_ContentPtr]
-        CMP     R2,#0
-        LDMEQFD R13!,{R0-R2,PC}
+	STMFD	R13!,{R0-R2,R14}		; Check that we currently have something on the clipboard.
+	LDR	R2,[R12,#WS_ContentPtr]
+	CMP	R2,#0
+	LDMEQFD	R13!,{R0-R2,PC}
 
-        MOV     R0,#7				; If we have clipboard contents in the RMA, free that contents.
-        SWI     XOS_Module
-        MOV     R0,#0
-        STR     R0,[R12,#WS_ContentPtr]
-        LDMFD   R13!,{R0-R2,PC}
+	MOV	R0,#7				; If we have clipboard contents in the RMA, free that contents.
+	SWI	XOS_Module
+	MOV	R0,#0
+	STR	R0,[R12,#WS_ContentPtr]
+	LDMFD	R13!,{R0-R2,PC}
 
 ; ==========================================================================================================================================
 ; Keep a file extension, and delete the rest.
@@ -1073,15 +1073,15 @@ FreeClipboardContents
 ; On entry, R2=Start of text; R3=End of text.
 
 PostFilterKeepExt
-        MOV     R4,R2
+	MOV	R4,R2
 
 PostFilterKeepExtLoop				; Search through the string, looking for '/' to show where
-        CMP     R4,R3   			; the file extension begins.
-        LDMGEFD R13!,{R0-R4,PC}
+	CMP	R4,R3   			; the file extension begins.
+	LDMGEFD	R13!,{R0-R4,PC}
 
-        LDRB    R0,[R4,#1]!
-        CMP     R0,#&2F                         ; '/'
-        BNE     PostFilterKeepExtLoop
+	LDRB	R0,[R4,#1]!
+	CMP	R0,#&2F				; '/'
+	BNE	PostFilterKeepExtLoop
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------
 ; Delete text up to a given point.
@@ -1089,28 +1089,28 @@ PostFilterKeepExtLoop				; Search through the string, looking for '/' to show wh
 ; On entry, R2=Start of text; R3=End of text; R4=Delete point.
 
 DeleteToStartOfText
-        CMP     R4,R3				; Copy the text back to the start of the buffer.
-        BGE     DeleteToStartOfTextExit
-        LDRB    R0,[R4],#1
-        STRB    R0,[R2],#1
-        B       DeleteToStartOfText
+	CMP	R4,R3				; Copy the text back to the start of the buffer.
+	BGE	DeleteToStartOfTextExit
+	LDRB	R0,[R4],#1
+	STRB	R0,[R2],#1
+	B	DeleteToStartOfText
 
 DeleteToStartOfTextExit
-        MOV     R0,#0				; Terminate the new buffer contents.
-        STRB    R0,[R2,#0]
+	MOV	R0,#0				; Terminate the new buffer contents.
+	STRB	R0,[R2,#0]
 
-        LDR     R1,[R12,#WS_PollBlockPtr]	; *** Is there any reason why this doesn't just call PostFilterRefreshIcon?
-        MOV     R0,#0
-        STR     R0,[R1,#8]
-        STR     R0,[R1,#12]
-        SWI     XWimp_SetIconState
-        SWI     XWimp_GetCaretPosition
-        LDMIA   R1,{R0-R4}
-        STMFD   R13!,{R5}
-        MOV     R5,#0
-        SWI     XWimp_SetCaretPosition
-        LDMFD   R13!,{R5}
-        LDMFD   R13!,{R0-R4,PC}
+	LDR	R1,[R12,#WS_PollBlockPtr]	; *** Is there any reason why this doesn't just call PostFilterRefreshIcon?
+	MOV	R0,#0
+	STR	R0,[R1,#8]
+	STR	R0,[R1,#12]
+	SWI	XWimp_SetIconState
+	SWI	XWimp_GetCaretPosition
+	LDMIA	R1,{R0-R4}
+	STMFD	R13!,{R5}
+	MOV	R5,#0
+	SWI	XWimp_SetCaretPosition
+	LDMFD	R13!,{R5}
+	LDMFD	R13!,{R0-R4,PC}
 
 ; ==========================================================================================================================================
 ; Delete the text from the caret to the start of the icon.
@@ -1118,14 +1118,14 @@ DeleteToStartOfTextExit
 ; On entry, R2=Start of text; R3=End of text.
 
 PostFilterDeleteBack
-        LDR     R1,[R12,#WS_PollBlockPtr]	; Get the index of the caret into the string.
-        SWI     XWimp_GetCaretPosition
-        LDR     R4,[R1,#20]
-        ADD     R4,R4,R2
-        CMP     R4,R2				; Check that the index isn't negative (-1 is no caret).
-        LDMLEFD R13!,{R0-R4,PC}
+	LDR	R1,[R12,#WS_PollBlockPtr]	; Get the index of the caret into the string.
+	SWI	XWimp_GetCaretPosition
+	LDR	R4,[R1,#20]
+	ADD	R4,R4,R2
+	CMP	R4,R2				; Check that the index isn't negative (-1 is no caret).
+	LDMLEFD R13!,{R0-R4,PC}
 
-        B       DeleteToStartOfText
+	B	DeleteToStartOfText
 
 ; ==========================================================================================================================================
 ; Swap the case of the character after the caret, and move the caret on one.
@@ -1156,19 +1156,19 @@ PostFilterSwapCase
 	LDRB	R1,[R3,R1]
         STRB    R1,[R4]
 
-        MOV     R0,#0				; Refresh the icon and move the caret on
+	MOV	R0,#0				; Refresh the icon and move the caret on
 	LDR	R1,[R12,#WS_PollBlockPtr]
-        STR     R0,[R1,#8]
-        STR     R0,[R1,#12]
-        SWI     XWimp_SetIconState
+	STR	R0,[R1,#8]
+	STR	R0,[R1,#12]
+	SWI	XWimp_SetIconState
 	SWI	XWimp_GetCaretPosition
 	LDR	R4,[R1,#20]
-        LDMIA   R1,{R0-R1}
-        STMFD   R13!,{R5}
-        ADD	R5,R4,#1
+	LDMIA	R1,{R0-R1}
+	STMFD	R13!,{R5}
+	ADD	R5,R4,#1
 	MVN	R4,#0
-        SWI     XWimp_SetCaretPosition
-        LDMFD   R13!,{R5}
+	SWI	XWimp_SetCaretPosition
+	LDMFD	R13!,{R5}
 
 	LDMFD	R13!,{R0-R4,PC}
 
@@ -1178,29 +1178,29 @@ PostFilterSwapCase
 ; On entry, R2=Start of text; R3=End of text.
 
 PostFilterRemoveExt
-        MOV     R0,R2
+	MOV	R0,R2
 
 RemoveExtStopLoop
-        CMP     R2,R3				; Find the last '.' in the text, and update R0 to point to the character after it.
-        BGE     RemoveExtStopLoopExit
-        LDRB    R1,[R2],#1
-        CMP     R1,#&2E                      	; '.'
-        MOVEQ   R0,R2
-        B       RemoveExtStopLoop
+	CMP	R2,R3				; Find the last '.' in the text, and update R0 to point to the character after it.
+	BGE	RemoveExtStopLoopExit
+	LDRB	R1,[R2],#1
+	CMP	R1,#&2E				; '.'
+	MOVEQ	R0,R2
+	B	RemoveExtStopLoop
 
 RemoveExtStopLoopExit
-        MOV     R14,#1				; Set R2 to point to the start of the text after the last '.'.
-        MOV     R2,R0
+	MOV	R14,#1				; Set R2 to point to the start of the text after the last '.'.
+	MOV	R2,R0
 
 RemoveExtUpdateLoop
-        CMP     R2,R3				; Exit if the end of the text is reached.
-        BGE     PostFilterRefreshIcon
+	CMP	R2,R3				; Exit if the end of the text is reached.
+	BGE	PostFilterRefreshIcon
 
-        LDRB    R1,[R2],#1			; If a '/' is found, terminate the text there with a CR and exit.
-        CMP     R1,#&2F                         ; '/'
-        MOVEQ   R1,#&0D
-        STREQB  R1,[R2,#-1]
-        BEQ     PostFilterRefreshIcon
+	LDRB	R1,[R2],#1			; If a '/' is found, terminate the text there with a CR and exit.
+	CMP	R1,#&2F				; '/'
+	MOVEQ	R1,#&0D
+	STREQB	R1,[R2,#-1]
+	BEQ	PostFilterRefreshIcon
 
 	LDR	R0,[R12,#WS_CPTable]		; Get the flag byte containing the bit for the next character into R4.
 	MOV	R4,R1,LSR #3
@@ -1217,13 +1217,13 @@ RemoveExtUpdateLoop
 	BEQ	RemoveExtUpdateLoop
 
 RemoveExtCheckCase
-        CMP     R14,#1				; Otherwise, it's alphabetic.  If R14 is set, the last char was not, so...
+	CMP	R14,#1				; Otherwise, it's alphabetic.  If R14 is set, the last char was not, so...
 	LDREQ	R4,[R12,#WS_UCTable]		; ...we convert to upper case, else...
 	LDRNE	R4,[R12,#WS_LCTable]		; ...we convert to lower case.
 	LDRB	R1,[R4,R1]
-        STRB    R1,[R2,#-1]
-        MOV     R14,#0				; Clear the R14 flag, and continue.
-        B       RemoveExtUpdateLoop
+	STRB	R1,[R2,#-1]
+	MOV	R14,#0				; Clear the R14 flag, and continue.
+	B	RemoveExtUpdateLoop
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------
 ; Refresh the icon and put the caret back at the start.
@@ -1231,18 +1231,18 @@ RemoveExtCheckCase
 ; This relies on the window and icon handles being present in the poll-block following the start of the filter code.
 
 PostFilterRefreshIcon
-        LDR     R1,[R12,#WS_PollBlockPtr]
-        MOV     R0,#0
-        STR     R0,[R1,#8]
-        STR     R0,[R1,#12]
-        SWI     XWimp_SetIconState
-        SWI     XWimp_GetCaretPosition
-        LDMIA   R1,{R0-R4}
-        STMFD   R13!,{R5}
-        MVN     R5,#0
-        SWI     XWimp_SetCaretPosition
-        LDMFD   R13!,{R5}
-        LDMFD   R13!,{R0-R4,PC}
+	LDR	R1,[R12,#WS_PollBlockPtr]
+	MOV	R0,#0
+	STR	R0,[R1,#8]
+	STR	R0,[R1,#12]
+	SWI	XWimp_SetIconState
+	SWI	XWimp_GetCaretPosition
+	LDMIA	R1,{R0-R4}
+	STMFD	R13!,{R5}
+	MVN	R5,#0
+	SWI	XWimp_SetCaretPosition
+	LDMFD	R13!,{R5}
+	LDMFD	R13!,{R0-R4,PC}
 
 ; ==========================================================================================================================================
 ; Command IcnClipBrdKeys
@@ -1346,53 +1346,53 @@ CtrlText
 ; Command Desktop_IcnClipBrd
 
 CommandCode_Desktop
-        LDR     R12,[R12]
-        STMFD   R13!,{R14}
-        LDR     R0,[R12,#WS_TaskHandle]
-        CMP     R0,#0
-        ADRGT   R0,ErrorBlock
-        MSRGT	CPSR_f,#9<<28
-        LDMGTFD R13!,{PC}
-        MOV     R0,#2
-        ADR     R1,TitleString
-        MOV     R2,#0
-        SWI     XOS_Module
-        LDMFD   R13!,{PC}
+	LDR	R12,[R12]
+	STMFD	R13!,{R14}
+	LDR	R0,[R12,#WS_TaskHandle]
+	CMP	R0,#0
+	ADRGT	R0,ErrorBlock
+	MSRGT	CPSR_f,#9<<28
+	LDMGTFD	R13!,{PC}
+	MOV	R0,#2
+	ADR	R1,TitleString
+	MOV	R2,#0
+	SWI	XOS_Module
+	LDMFD	R13!,{PC}
 
 ; ==========================================================================================================================================
 ; Service Call Handler
 
 ServiceCallHandler
-        LDR     R12,[R12]
-        STMFD   R13!,{R14}
+	LDR	R12,[R12]
+	STMFD	R13!,{R14}
 
 ;	TEQ	R1,#Service_TerritoryStarted
 ;	BEQ	ServiceCall_TerritoryStarted
 
-        TEQ     R1,#Service_StartWimp
-        BEQ     ServiceCall_StartWimp
+	TEQ	R1,#Service_StartWimp
+	BEQ	ServiceCall_StartWimp
 
-        TEQ     R1,#Service_PostReset
-        MOVEQ   R14,#0
-        STREQ   R14,[R12,#WS_TaskHandle]
+	TEQ	R1,#Service_PostReset
+	MOVEQ	R14,#0
+	STREQ	R14,[R12,#WS_TaskHandle]
 
-        TEQ     R1,#Service_StartedWimp
-        LDMNEFD R13!,{PC}
+	TEQ	R1,#Service_StartedWimp
+	LDMNEFD	R13!,{PC}
 
-        LDR     R14,[R12,#WS_TaskHandle]
-        CMN     R14,#1
-        MOVEQ   R14,#0
-        STREQ   R14,[R12,#WS_TaskHandle]
-        LDMFD   R13!,{PC}
+	LDR	R14,[R12,#WS_TaskHandle]
+	CMN	R14,#1
+	MOVEQ	R14,#0
+	STREQ	R14,[R12,#WS_TaskHandle]
+	LDMFD	R13!,{PC}
 
 ServiceCall_StartWimp
-        LDR     R14,[R12,#WS_TaskHandle]
-        TEQ     R14,#0
-        MVNEQ   R14,#0
-        STREQ   R14,[R12,#WS_TaskHandle]
-        ADREQL  R0,CommandTable
-        MOVEQ   R1,#0
-        LDMFD   R13!,{PC}
+	LDR	R14,[R12,#WS_TaskHandle]
+	TEQ	R14,#0
+	MVNEQ	R14,#0
+	STREQ	R14,[R12,#WS_TaskHandle]
+	ADREQL	R0,CommandTable
+	MOVEQ	R1,#0
+	LDMFD	R13!,{PC}
 
 ServiceCall_TerritoryStarted
 ;	MOV	R0,#-1				; Initialise the case conversion tables.
@@ -1402,26 +1402,26 @@ ServiceCall_TerritoryStarted
 ;	MOV	R0,#-1
 ;	SWI	XTerritory_UpperCaseTable
 ;	STR	R0,[R12,#WC_UCTable]
-;       LDMFD   R13!,{PC}
+;	LDMFD	R13!,{PC}
 
 
 ; ==========================================================================================================================================
 ; Module title and help texts.
 
 HelpString
-        DCB     "IcnClipBrd\t",$BuildVersion," (",$BuildDate,") 32-bit ",169," Thomas Leonard & Stephen Fryatt",0
+	DCB	"IcnClipBrd\t",$BuildVersion," (",$BuildDate,") 32-bit ",169," Thomas Leonard & Stephen Fryatt",0
 
 TitleString
-        DCB     "IcnClipBrd",0
+	DCB	"IcnClipBrd",0
 	ALIGN
 
 ErrorBlock
 	DCD	0
-        DCB     "IcnClipBrd is already running",0 ; Error Block String -/-
+	DCB	"IcnClipBrd is already running",0 ; Error Block String -/-
 
 CommandDesktopHelp
-        DCB     "IcnClipBrd provides cut and paste features in writeable icons.",13
-        DCB     "Do not use *",27,0,", use *Desktop instead.",0
+	DCB	"IcnClipBrd provides cut and paste features in writeable icons.",13
+	DCB	"Do not use *",27,0,", use *Desktop instead.",0
 
 CommandKeysHelp
 	DCB	"*",27,0," sets or displays the keys intercepted by IcnClipBrd.",13
@@ -1430,4 +1430,4 @@ CommandKeysHelp
 CommandKeysSyntax
 	DCB	27,30,"<new keys>]",0
 
-        END
+	END
