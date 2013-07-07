@@ -115,9 +115,8 @@ WS_RAMBlockSize				EQU &80
 
 ; ==========================================================================================================================================
 
-        ORG      &0
-
-        ENTRY
+	AREA	Module,CODE
+	ENTRY
 
 ; ==========================================================================================================================================
 ; Module Header
@@ -1410,10 +1409,11 @@ ServiceCall_TerritoryStarted
 ; Module title and help texts.
 
 HelpString
-        DCB     "IcnClipBrd\t0.16 (20 Jan 2012) 32-bit © Thomas Leonard & Stephen Fryatt",0
+        DCB     "IcnClipBrd\t0.16 (20 Jan 2012) 32-bit ",169," Thomas Leonard & Stephen Fryatt",0
 
 TitleString
         DCB     "IcnClipBrd",0
+	ALIGN
 
 ErrorBlock
 	DCD	0
