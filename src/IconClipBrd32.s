@@ -75,21 +75,21 @@ Ctrl_C					EQU &43
 
 ; Workspace usage
 
-WS_Size					EQU &154
-
-WS_TaskHandle   			EQU &00
-WS_PollBlockPtr				EQU &04
-WS_PollWord     			EQU &08
-WS_ContentPtr				EQU &0C
-WS_ContentLen				EQU &10
-WS_BytesSent				EQU &14
-WS_FlagWord				EQU &18
-WS_OtherTask				EQU &1C
-WS_PollBlock				EQU &20
-WS_UCTable				EQU &140
-WS_LCTable				EQU &144
-WS_CPTable				EQU &148
-WS_UPTable				EQU &14C
+					^	0
+WS_TaskHandle				#	4
+WS_PollBlockPtr				#	4
+WS_PollWord				#	4
+WS_ContentPtr				#	4
+WS_ContentLen				#	4
+WS_BytesSent				#	4
+WS_FlagWord				#	4
+WS_OtherTask				#	4
+WS_PollBlock				#	288
+WS_UCTable				#	4
+WS_LCTable				#	4
+WS_CPTable				#	4
+WS_UPTable				#	8	; Old code allocated 8 bytes here?!
+WS_Size					*	@
 
 
 ; Flag bits
