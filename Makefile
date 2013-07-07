@@ -137,7 +137,7 @@ $(OBJDIR):
 # Build the object files, and identify their dependencies.
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.s
-	$(AS) $(ASFLAGS) -o $@ $<
+	$(AS) $(ASFLAGS) -PreDefine 'BuildDate SETS "\"$(BUILD_DATE)\""' -PreDefine 'BuildVersion SETS "\"$(VERSION)\""' -o $@ $<
 
 
 # Build the documentation
