@@ -360,115 +360,115 @@ MessageHandlerRAMFetch
 ; We receive a Message_RAMTransmit if we are getting clipboard data off another task.
 
 MessageHandlerRAMTransmit
-        LDR     R2,[R1,#4]			; Reply with Code 19???
-        LDR     R3,[R1,#8]
-        STR     R3,[R1,#12]
-        MOV     R0,#19
-        SWI     XWimp_SendMessage
+	LDR	R2,[R1,#4]			; Reply with Code 19???
+	LDR	R3,[R1,#8]
+	STR	R3,[R1,#12]
+	MOV	R0,#19
+	SWI	XWimp_SendMessage
 
-        LDR     R4,[R1,#24]			; R4 and R5 = the number of bytes transferred. R3 = the end of our buffer.
-        MOV     R5,R4
-        ADD     R3,R1,#WS_RAMBlockOffset
+	LDR	R4,[R1,#24]			; R4 and R5 = the number of bytes transferred. R3 = the end of our buffer.
+	MOV	R5,R4
+	ADD	R3,R1,#WS_RAMBlockOffset
 
 MessageHandlerRAMTransmitLoop
-        SUBS    R4,R4,#1			; Start to loop, exiting when we have no data left in the buffer.
-        BMI     MessageHandlerRAMTransmitLoopExit
+	SUBS	R4,R4,#1			; Start to loop, exiting when we have no data left in the buffer.
+	BMI	MessageHandlerRAMTransmitLoopExit
 
-        MOV     R0,#&8A				; Put the bytes received into the keyboard buffer.
-        MOV     R1,#0
-        LDRB    R6,[R3],#1
-        CMP     R6,#0				; Exit on a zero terminator.  *** Should this be ctrl?
-        BEQ     WimpPollLoop
+	MOV	R0,#&8A				; Put the bytes received into the keyboard buffer.
+	MOV	R1,#0
+	LDRB	R6,[R3],#1
+	CMP	R6,#0				; Exit on a zero terminator.  *** Should this be ctrl?
+	BEQ	WimpPollLoop
 
-        TST     R6,#&80                        	; Handle the special case of bytes >127.
-        MOVNE   R2,#0
-        SWINE   XOS_Byte
+	TST	R6,#&80                        	; Handle the special case of bytes >127.
+	MOVNE	R2,#0
+	SWINE	XOS_Byte
 
-        MOV     R2,R6
-        SWI     XOS_Byte
-        BCS     WimpPollLoop
+	MOV	R2,R6
+	SWI	XOS_Byte
+	BCS	WimpPollLoop
 
-        B       MessageHandlerRAMTransmitLoop
+	B	MessageHandlerRAMTransmitLoop
 
 MessageHandlerRAMTransmitLoopExit
-        CMP     R5,#WS_RAMBlockSize		; If the block wasn't full, exit now...
-        BLT     WimpPollLoop
+	CMP	R5,#WS_RAMBlockSize		; If the block wasn't full, exit now...
+	BLT	WimpPollLoop
 
-        LDR     R1,[R12,#WS_PollBlockPtr]	; ...otherwise send another Message_RAMFetch to get the rest of the data.
-        MOV     R0,#Message_RAMFetch
-        STR     R0,[R1,#16]
-        MOV     R0,#WS_RAMBlockSize
-        STR     R0,[R1,#24]
-        MOV     R0,#17
+	LDR	R1,[R12,#WS_PollBlockPtr]	; ...otherwise send another Message_RAMFetch to get the rest of the data.
+	MOV	R0,#Message_RAMFetch
+	STR	R0,[R1,#16]
+	MOV	R0,#WS_RAMBlockSize
+	STR	R0,[R1,#24]
+	MOV	R0,#17
 	LDR	R2,[R12,#WS_OtherTask]
-        SWI     XWimp_SendMessage
+	SWI	XWimp_SendMessage
 
-        B       WimpPollLoop
+	B	WimpPollLoop
 
 ; ==========================================================================================================================================
 ; Message_DataSave comes in as a response to our sending Message_DataRequest.
 
 MessageHandlerDataSave
-        LDR     R0,[R1,#40]			; Test the filetype that is offered.  If it isn't one we can handle,
-        LDR     R2,Filetype			; beep and exit.
-        CMP     R0,R2
-        SWINE   OS_WriteI+7
-        BNE     WimpPollLoop                    ; **** CAUTION: conditional after BL/SWI.
+	LDR	R0,[R1,#40]			; Test the filetype that is offered.  If it isn't one we can handle,
+	LDR	R2,Filetype			; beep and exit.
+	CMP	R0,R2
+	SWINE	OS_WriteI+7
+	BNE	WimpPollLoop			; **** CAUTION: conditional after BL/SWI.
 
-        MOV     R0,#19				; Reply with Code 19???
-        LDR     R2,[R1,#4]
-        LDR     R3,[R1,#8]
-        STR     R3,[R1,#12]
-        SWI     Wimp_SendMessage
+	MOV	R0,#19				; Reply with Code 19???
+	LDR	R2,[R1,#4]
+	LDR	R3,[R1,#8]
+	STR	R3,[R1,#12]
+	SWI	Wimp_SendMessage
 
-        MOV     R0,#18				; Start to fill in a Message_RAMFetch.
-        MOV     R3,#Message_RAMFetch		; This never seems to get called???
-        STR     R3,[R1,#16]
-        MOV     R3,#28
-        STR     R3,[R1,#0]
-        ADD     R3,R1,#WS_RAMBlockOffset
-        STR     R3,[R1,#20]
-        MOV     R3,#WS_RAMBlockSize
-        STR     R3,[R1,#24]
-        STR     R2,[R12,#WS_OtherTask]
-;        B       WimpMessageBounced		; Comment out to enable RAM transfers
+	MOV	R0,#18				; Start to fill in a Message_RAMFetch.
+	MOV	R3,#Message_RAMFetch		; This never seems to get called???
+	STR	R3,[R1,#16]
+	MOV	R3,#28
+	STR	R3,[R1,#0]
+	ADD	R3,R1,#WS_RAMBlockOffset
+	STR	R3,[R1,#20]
+	MOV	R3,#WS_RAMBlockSize
+	STR	R3,[R1,#24]
+	STR	R2,[R12,#WS_OtherTask]
+;	B	WimpMessageBounced		; Comment out to enable RAM transfers
 
-        SWI     Wimp_SendMessage
-        B       WimpPollLoop
+	SWI	Wimp_SendMessage
+	B	WimpPollLoop
 
 ; ==========================================================================================================================================
 ; Bounced message handler - the only one we worry about is a bounced Message_RAMFetch, which starts the
 ; rest of the data transfer protocol off.
 
 WimpMessageBounced
-        LDR     R0,[R1,#16]			; Exit immediately if the bounced message isn't
-        CMP     R0,#Message_RAMFetch		; Message_RAMFetch.
-        BNE     WimpPollLoop
+	LDR	R0,[R1,#16]			; Exit immediately if the bounced message isn't
+	CMP	R0,#Message_RAMFetch		; Message_RAMFetch.
+	BNE	WimpPollLoop
 
-        MOV     R0,#60				; Start to assemble the block for Message_DataSaveAck
-        STR     R0,[R1,#0]
-        ADR     R0,WimpScrapString
-        ADD     R2,R1,#44
+	MOV	R0,#60				; Start to assemble the block for Message_DataSaveAck
+	STR	R0,[R1,#0]
+	ADR	R0,WimpScrapString
+	ADD	R2,R1,#44
 
 CopyWimpScrapString
-        LDRB    R3,[R0],#1
-        STRB    R3,[R2],#1
-        CMP     R3,#&20                         ; " "
-        BGE     CopyWimpScrapString
+	LDRB	R3,[R0],#1
+	STRB	R3,[R2],#1
+	CMP	R3,#&20				; " "
+	BGE	CopyWimpScrapString
 
-        MVN     R0,#0				; -1 indicates that the file is 'unsafe'
-        STR     R0,[R1,#36]
-        MOV     R0,#Message_DataSaveAck
-        STR     R0,[R1,#16]
-        MOV     R0,#17
-        LDR     R2,[R12,#WS_OtherTask]
-        SWI     XWimp_SendMessage
-        B       WimpPollLoop
+	MVN	R0,#0				; -1 indicates that the file is 'unsafe'
+	STR	R0,[R1,#36]
+	MOV	R0,#Message_DataSaveAck
+	STR	R0,[R1,#16]
+	MOV	R0,#17
+	LDR	R2,[R12,#WS_OtherTask]
+	SWI	XWimp_SendMessage
+	B	WimpPollLoop
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------
 
 WimpScrapString
-        DCB     "<Wimp$Scrap>",0
+	DCB	"<Wimp$Scrap>",0
 	ALIGN
 
 ; ==========================================================================================================================================
@@ -476,90 +476,90 @@ WimpScrapString
 ; data is saved into Wimp$Scrap for us.
 
 MessageHandlerDataLoad
-        MOV     R0,#&4F				; Open the file containing the clipboard contents.
-        ADD     R1,R1,#44
-        SWI     XOS_Find
-        BLVS    ReportWimpError
-        BVS     WimpPollLoop
+	MOV	R0,#&4F				; Open the file containing the clipboard contents.
+	ADD	R1,R1,#44
+	SWI	XOS_Find
+	BLVS	ReportWimpError
+	BVS	WimpPollLoop
 
-        MOV     R9,R0				; The file handle is now in R9.
+	MOV	R9,R0				; The file handle is now in R9.
 
 DataLoadPasteLoop
-        MOV     R1,R9				; Read a byte from the file, and end if fails.
-        SWI     XOS_BGet
-        BCS     DataLoadPasteLoopExit
+	MOV	R1,R9				; Read a byte from the file, and end if fails.
+	SWI	XOS_BGet
+	BCS	DataLoadPasteLoopExit
 
-        CMP     R0,#0				; End if the byte is zero.
-        BEQ     DataLoadPasteLoopExit
+	CMP	R0,#0				; End if the byte is zero.
+	BEQ	DataLoadPasteLoopExit
 
-        MOV     R3,R0				; Insert the byte into the keyboard buffer, prefixing
-        TST     R3,#&80				; it with zero if it is >127.
-        MOV     R0,#&8A
-        MOV     R1,#0
-        MOVNE   R2,#0
-        SWINE   XOS_Byte
-        MOV     R2,R3
-        SWI     XOS_Byte
-        BCS     DataLoadPasteLoopExit
-        B       DataLoadPasteLoop
+	MOV	R3,R0				; Insert the byte into the keyboard buffer, prefixing
+	TST	R3,#&80				; it with zero if it is >127.
+	MOV	R0,#&8A
+	MOV	R1,#0
+	MOVNE	R2,#0
+	SWINE	XOS_Byte
+	MOV	R2,R3
+	SWI	XOS_Byte
+	BCS	DataLoadPasteLoopExit
+	B	DataLoadPasteLoop
 
 DataLoadPasteLoopExit
-        MOV     R0,#0				; Close the scrap file.
-        MOV     R1,R9
-        SWI     XOS_Find
+	MOV	R0,#0				; Close the scrap file.
+	MOV	R1,R9
+	SWI	XOS_Find
 
-        LDR     R1,[R12,#WS_PollBlockPtr]	; Send a Message_DataLoadAck to finish the transfer.
-        MOV     R0,#Message_DataLoadAck
-        STR     R0,[R1,#16]
+	LDR	R1,[R12,#WS_PollBlockPtr]	; Send a Message_DataLoadAck to finish the transfer.
+	MOV	R0,#Message_DataLoadAck
+	STR	R0,[R1,#16]
 	LDR	R0,[R1,#8]
 	STR	R0,[R1,#12]
-        MOV     R0,#17
-        LDR     R2,[R1,#4]
-        SWI     XWimp_SendMessage
+	MOV	R0,#17
+	LDR	R2,[R1,#4]
+	SWI	XWimp_SendMessage
 
-        ADD     R1,R1,#44			; Wipe the WimpScrap file following the transfer.
-        MOV     R0,#27
-        MOV     R3,#0
-        SWI     XOS_FSControl
+	ADD	R1,R1,#44			; Wipe the WimpScrap file following the transfer.
+	MOV	R0,#27
+	MOV	R3,#0
+	SWI	XOS_FSControl
 
-        B       WimpPollLoop
+	B	WimpPollLoop
 
 ; ==========================================================================================================================================
 ; If we failed to respond to their Message_RAMFetch, the other task will now send us a Message_DataSaveAck to get the file saved.
 
 MessageHandlerDataSaveAck
-        LDR     R4,[R12,#WS_ContentPtr]		; Check that we have the clipboard, and exit if not.
-        CMP     R4,#0
-        BEQ     WimpPollLoop
+	LDR	R4,[R12,#WS_ContentPtr]		; Check that we have the clipboard, and exit if not.
+	CMP	R4,#0
+	BEQ	WimpPollLoop
 
-        MOV     R0,#10				; Save the data to the file given in the message, using OS_File 10.
-        ADD     R1,R1,#44
-        MOV     R2,#&01,20                      ; =1<<12
-        SUB     R2,R2,#1
-        LDR     R5,[R12,#WS_ContentLen]
-        ADD     R5,R5,R4
-        SWI     XOS_File
-        BLVS    ReportWimpError
+	MOV	R0,#10				; Save the data to the file given in the message, using OS_File 10.
+	ADD	R1,R1,#44
+	MOV	R2,#&01,20			; =1<<12
+	SUB	R2,R2,#1
+	LDR	R5,[R12,#WS_ContentLen]
+	ADD	R5,R5,R4
+	SWI	XOS_File
+	BLVS	ReportWimpError
 
-        LDR     R1,[R12,#WS_PollBlockPtr]	; Send a Message_DataLoad to indicate that the file is in place.
-        LDR     R0,[R1,#8]
-        STR     R0,[R1,#12]
-        MOV     R0,#Message_DataLoad
-        STR     R0,[R1,#16]
-        MOV     R0,#17
-        LDR     R2,[R1,#4]
-        SWI     XWimp_SendMessage
+	LDR	R1,[R12,#WS_PollBlockPtr]	; Send a Message_DataLoad to indicate that the file is in place.
+	LDR	R0,[R1,#8]
+	STR	R0,[R1,#12]
+	MOV	R0,#Message_DataLoad
+	STR	R0,[R1,#16]
+	MOV	R0,#17
+	LDR	R2,[R1,#4]
+	SWI	XWimp_SendMessage
 
-        B       WimpPollLoop
+	B	WimpPollLoop
 
 ; ==========================================================================================================================================
 
 ReportWimpError
-        ORR     R14,R14,#&01,4                   ; =1<<28, CAUTION: manipulation of PSR in address?. Function entry, (preserves flags)
-        STMFD   R13!,{R0-R2,R14}
-        MOV     R1,#5
-        SWI     XWimp_ReportError
-        LDMFD   R13!,{R0-R2,PC}
+	ORR	R14,R14,#&01,4			; =1<<28, CAUTION: manipulation of PSR in address?. Function entry, (preserves flags)
+	STMFD	R13!,{R0-R2,R14}
+	MOV	R1,#5
+	SWI	XWimp_ReportError
+	LDMFD	R13!,{R0-R2,PC}
 
 ; ==========================================================================================================================================
 ; Message_ClaimEntity
@@ -567,68 +567,68 @@ ReportWimpError
 ; Someone else has taken control of the clipboard.
 
 MessageHandlerClaimEntity
-        LDR     R0,[R1,#4]			; First check that we didn't send the message out.
-        LDR     R2,[R12,#WS_TaskHandle]
-        CMP     R0,R2
-        BEQ     WimpPollLoop
+	LDR	R0,[R1,#4]			; First check that we didn't send the message out.
+	LDR	R2,[R12,#WS_TaskHandle]
+	CMP	R0,R2
+	BEQ	WimpPollLoop
 
-        LDR     R0,[R1,#20]			; Check that it is the clipboard being claimed.
-        TST     R0,#4
-        BEQ     WimpPollLoop
+	LDR	R0,[R1,#20]			; Check that it is the clipboard being claimed.
+	TST	R0,#4
+	BEQ	WimpPollLoop
 
-        BL      FreeClipboardContents		; Release the memory used for the clipboard contents.
-        B       WimpPollLoop
+	BL	FreeClipboardContents		; Release the memory used for the clipboard contents.
+	B	WimpPollLoop
 
 ; ==========================================================================================================================================
 ; Message_DataRequest comes in to indicate that someone else wants a copy of the clipboard contents.
 
 MessageHandlerDataRequest
-        LDR     R0,[R12,#WS_ContentPtr]		; Check if we own the clipboard, and ignore the message if we don't.
-        CMP     R0,#0
-        BEQ     WimpPollLoop
+	LDR	R0,[R12,#WS_ContentPtr]		; Check if we own the clipboard, and ignore the message if we don't.
+	CMP	R0,#0
+	BEQ	WimpPollLoop
 
-        MOV     R0,#0				; Zero the bytes sent count before starting any RAM transfer.
-        STR     R0,[R12,#WS_BytesSent]
+	MOV	R0,#0				; Zero the bytes sent count before starting any RAM transfer.
+	STR	R0,[R12,#WS_BytesSent]
 
-        LDR     R0,[R1,#36]			; Check that it's a send clipboard request, and ignore it otherwise.
-        TST     R0,#4
-        BEQ     WimpPollLoop
+	LDR	R0,[R1,#36]			; Check that it's a send clipboard request, and ignore it otherwise.
+	TST	R0,#4
+	BEQ	WimpPollLoop
 
-        MOV     R0,#19				; Reply with code 19????
-        LDR     R2,[R1,#4]			; *** Did LDR R5
+	MOV	R0,#19				; Reply with code 19????
+	LDR	R2,[R1,#4]			; *** Did LDR R5
 ;	MOV	R2,R5
-        LDR     R3,[R1,#8]
-        STR     R3,[R1,#12]
-        SWI     XWimp_SendMessage
+	LDR	R3,[R1,#8]
+	STR	R3,[R1,#12]
+	SWI	XWimp_SendMessage
 
-        MOV     R0,#56				; Start to fill in the block for Message_DataSave
-        STR     R0,[R1,#0]
-        LDR     R0,[R12,#WS_ContentLen]
-        STR     R0,[R1,#36]
-        ADD     R0,R1,#40
-        ADR     R5,Filetype			; *** Did ADR R2
-        ADR     R3,SuggestedFilenameEnd
+	MOV	R0,#56				; Start to fill in the block for Message_DataSave
+	STR	R0,[R1,#0]
+	LDR	R0,[R12,#WS_ContentLen]
+	STR	R0,[R1,#36]
+	ADD	R0,R1,#40
+	ADR	R5,Filetype			; *** Did ADR R2
+	ADR	R3,SuggestedFilenameEnd
 
 MessageDataRequestCopyLoop
-        LDRB    R4,[R5],#1			; Copy in the filetype and the proposed name for the file.  *** Did use [R2]
-        STRB    R4,[R0],#1
-        CMP     R5,R3				; *** Did CMP R2,R3
-        BLT     MessageDataRequestCopyLoop
+	LDRB	R4,[R5],#1			; Copy in the filetype and the proposed name for the file.  *** Did use [R2]
+	STRB	R4,[R0],#1
+	CMP	R5,R3				; *** Did CMP R2,R3
+	BLT	MessageDataRequestCopyLoop
 
-        MOV     R0,#Message_DataSave
-        STR     R0,[R1,#16]
-        MOV     R0,#17
-;        MOV     R2,R5
-        SWI     XWimp_SendMessage
+	MOV	R0,#Message_DataSave
+	STR	R0,[R1,#16]
+	MOV	R0,#17
+;	MOV	R2,R5
+	SWI	XWimp_SendMessage
 
-        B       WimpPollLoop
+	B	WimpPollLoop
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------
 
 Filetype
-        DCD     &FFF
+	DCD	&FFF
 SuggestedFilename
-        DCB     "IconText",0
+	DCB	"IconText",0
 SuggestedFilenameEnd
 	ALIGN
 
@@ -636,46 +636,46 @@ SuggestedFilenameEnd
 ; Handle Message_Quit, buy shutting down the Wimp task and clearing the taskhandle.
 
 MessageQuit
-        LDR     R0,[R12,#WS_TaskHandle]
-        LDR     R1,TaskWord
-        SWI     XWimp_CloseDown
+	LDR	R0,[R12,#WS_TaskHandle]
+	LDR	R1,TaskWord
+	SWI	XWimp_CloseDown
 
-        MOV     R0,#0
-        STR     R0,[R12,#WS_TaskHandle]
+	MOV	R0,#0
+	STR	R0,[R12,#WS_TaskHandle]
 
-        SWI     OS_Exit
+	SWI	OS_Exit
 
 ; ==========================================================================================================================================
 ; Module Initialisation
 
 InitialisationCode
-        STMFD   R13!,{R14}
+	STMFD	R13!,{R14}
 
-        MOV     R0,#6				; Claim workspace from the module area.
-        MOV     R3,#WS_Size
-        SWI     XOS_Module
-        LDMVSFD R13!,{PC}
+	MOV	R0,#6				; Claim workspace from the module area.
+	MOV	R3,#WS_Size
+	SWI	XOS_Module
+	LDMVSFD	R13!,{PC}
 
-        STR     R2,[R12]			; If we claimed the memory, update the workspace pointer.
+	STR	R2,[R12]			; If we claimed the memory, update the workspace pointer.
 
-        ADRL    R0,TitleString			; Set up a filter on all Wimp tasks.
-        ADR     R1,PostFilter
-        MOV     R2,R12
-        MOV     R3,#0
-        MVN     R4,#&0100
-        SWI     XFilter_RegisterPostFilter
+	ADRL	R0,TitleString			; Set up a filter on all Wimp tasks.
+	ADR	R1,PostFilter
+	MOV	R2,R12
+	MOV	R3,#0
+	MVN	R4,#&0100
+	SWI	XFilter_RegisterPostFilter
 
-        LDR     R12,[R12]			; Initialise the R12 workspace.
-        ADD     R0,R12,#WS_PollBlock
-        STR     R0,[R12,#WS_PollBlockPtr]
+	LDR	R12,[R12]			; Initialise the R12 workspace.
+	ADD	R0,R12,#WS_PollBlock
+	STR	R0,[R12,#WS_PollBlockPtr]
 
-        MOV     R0,#0
-        STR     R0,[R12,#WS_TaskHandle]
-        STR     R0,[R12,#WS_ContentPtr]
-        STR     R0,[R12,#WS_PollWord]
+	MOV	R0,#0
+	STR	R0,[R12,#WS_TaskHandle]
+	STR	R0,[R12,#WS_ContentPtr]
+	STR	R0,[R12,#WS_PollWord]
 
 	MOV	R0,#&FF00			; Initialise the flags (enable all keypresses except Ctrl-S)
-        STR     R0,[R12,#WS_FlagWord]
+	STR	R0,[R12,#WS_FlagWord]
 
 	MOV	R0,#-1				; Initialise the case conversion tables.
 	SWI	XTerritory_LowerCaseTable
@@ -695,204 +695,204 @@ InitialisationCode
 	SWI	XTerritory_CharacterPropertyTable
 	STR	R0,[R12,#WS_UPTable]
 
-        LDMFD   R13!,{PC}
+	LDMFD	R13!,{PC}
 
 ; ==========================================================================================================================================
 ; Module Finalisation
 
 FinalisationCode
-        STMFD   R13!,{R14}
+	STMFD	R13!,{R14}
 
-        ADRL    R0,TitleString			; Deregister the filter.
-        ADR     R1,PostFilter
-        MOV     R2,R12
-        MOV     R3,#0
-        MVN     R4,#&01,24
-        SWI     XFilter_DeRegisterPostFilter
+	ADRL	R0,TitleString			; Deregister the filter.
+	ADR	R1,PostFilter
+	MOV	R2,R12
+	MOV	R3,#0
+	MVN	R4,#&01,24
+	SWI	XFilter_DeRegisterPostFilter
 
-        LDR     R12,[R12]			; Free the clipboard contents from the RMA.
-        BL      FreeClipboardContents
+	LDR	R12,[R12]			; Free the clipboard contents from the RMA.
+	BL	FreeClipboardContents
 
-        LDR     R0,[R12,#WS_TaskHandle]		; Quit the Wimp task, if it is running.
-        CMP     R0,#0
-        LDRGT   R1,TaskWord
-        SWIGT   XWimp_CloseDown
-        MOV     R1,#0
-        STR     R1,[R12,#WS_TaskHandle]
-        LDMVSFD R13!,{PC}
+	LDR	R0,[R12,#WS_TaskHandle]		; Quit the Wimp task, if it is running.
+	CMP	R0,#0
+	LDRGT	R1,TaskWord
+	SWIGT	XWimp_CloseDown
+	MOV	R1,#0
+	STR	R1,[R12,#WS_TaskHandle]
+	LDMVSFD	R13!,{PC}
 
-        MOV     R0,#7				; Free the RMA workspace.
-        MOV     R2,R12
-        SWI     XOS_Module
+	MOV	R0,#7				; Free the RMA workspace.
+	MOV	R2,R12
+	SWI	XOS_Module
 
-        LDMFD   R13!,{PC}
+	LDMFD	R13!,{PC}
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------
 
 TaskWord
-        DCD     &4B534154
+	DCD	&4B534154
 
 ; ==========================================================================================================================================
 ; Post Filter Code
 
 PostFilter
-        TEQ     R0,#8				; Test for Key_Pressed events and pass on all else.
-        MOVNE   PC,R14
+	TEQ	R0,#8				; Test for Key_Pressed events and pass on all else.
+	MOVNE	PC,R14
 
-        STMFD   R13!,{R0-R4,R14}
+	STMFD	R13!,{R0-R4,R14}
 
-        LDR     R3,[R1,#0]		        ; Load the window handle into R3; pass on if -1.
-        CMP     R3,#0
-        LDMLTFD R13!,{R0-R4,PC}
+	LDR	R3,[R1,#0]		        ; Load the window handle into R3; pass on if -1.
+	CMP	R3,#0
+	LDMLTFD	R13!,{R0-R4,PC}
 
-        LDR     R4,[R1,#4]			; Load the icon handle into R4; pass on if -1.
-        CMP     R4,#0
-        LDMLTFD R13!,{R0-R4,PC}
+	LDR	R4,[R1,#4]			; Load the icon handle into R4; pass on if -1.
+	CMP	R4,#0
+	LDMLTFD	R13!,{R0-R4,PC}
 
-        LDR     R12,[R12]			; Check to see if the Quote flag is set, and pass
-        LDR     R0,[R12,#WS_FlagWord]		; on if it is.
-        TST     R0,#F_Quote
-        BICNE   R0,R0,#F_Quote
-        STRNE   R0,[R12,#WS_FlagWord]
-        LDMNEFD R13!,{R0-R4,PC}
+	LDR	R12,[R12]			; Check to see if the Quote flag is set, and pass
+	LDR	R0,[R12,#WS_FlagWord]		; on if it is.
+	TST	R0,#F_Quote
+	BICNE	R0,R0,#F_Quote
+	STRNE	R0,[R12,#WS_FlagWord]
+	LDMNEFD	R13!,{R0-R4,PC}
 
-        LDR     R1,[R13,#4]
-        LDR     R2,[R1,#24]		     	; Test the keypress against those that we respond to...
-        TEQ     R2,#3		 	 	; Ctrl-C
-        TEQNE   R2,#4                           ; Ctrl-D
-        TEQNE   R2,#5                           ; Ctrl-E
-        TEQNE   R2,#11                          ; Ctrl-K
-        TEQNE   R2,#17                          ; Ctrl-Q
+	LDR	R1,[R13,#4]
+	LDR	R2,[R1,#24]			; Test the keypress against those that we respond to...
+	TEQ	R2,#3				; Ctrl-C
+	TEQNE	R2,#4				; Ctrl-D
+	TEQNE	R2,#5				; Ctrl-E
+	TEQNE	R2,#11				; Ctrl-K
+	TEQNE	R2,#17				; Ctrl-Q
 	TEQNE	R2,#19				; Ctrl-S
 	TEQNE	R2,#20				; Ctrl-T
-        TEQNE   R2,#22                          ; Ctrl-V
-        TEQNE   R2,#24                          ; Ctrl-X
-        TEQNE   R2,#26                          ; Ctrl-Z
-        LDMNEFD R13!,{R0-R4,PC}			; ...and exit if we don't get a match.
+	TEQNE	R2,#22				; Ctrl-V
+	TEQNE	R2,#24				; Ctrl-X
+	TEQNE	R2,#26				; Ctrl-Z
+	LDMNEFD	R13!,{R0-R4,PC}			; ...and exit if we don't get a match.
 
 	TEQ	R2,#3				; Now test each key again, and check the relevant flag bit to see if
 	TSTEQ	R0,#F_CtrlC			; the key is being accepted.  If not, exit.
-	LDMEQFD R13!,{R0-R4,PC}
+	LDMEQFD	R13!,{R0-R4,PC}
 
 	TEQ	R2,#4
 	TSTEQ	R0,#F_CtrlD
-	LDMEQFD R13!,{R0-R4,PC}
+	LDMEQFD	R13!,{R0-R4,PC}
 
 	TEQ	R2,#5
 	TSTEQ	R0,#F_CtrlE
-	LDMEQFD R13!,{R0-R4,PC}
+	LDMEQFD	R13!,{R0-R4,PC}
 
 	TEQ	R2,#11
 	TSTEQ	R0,#F_CtrlK
-	LDMEQFD R13!,{R0-R4,PC}
+	LDMEQFD	R13!,{R0-R4,PC}
 
 	TEQ	R2,#17
 	TSTEQ	R0,#F_CtrlQ
-	LDMEQFD R13!,{R0-R4,PC}
+	LDMEQFD	R13!,{R0-R4,PC}
 
 	TEQ	R2,#19
 	TSTEQ	R0,#F_CtrlS
-	LDMEQFD R13!,{R0-R4,PC}
+	LDMEQFD	R13!,{R0-R4,PC}
 
 	TEQ	R2,#20
 	TSTEQ	R0,#F_CtrlT
-	LDMEQFD R13!,{R0-R4,PC}
+	LDMEQFD	R13!,{R0-R4,PC}
 
 	TEQ	R2,#22
 	TSTEQ	R0,#F_CtrlV
-	LDMEQFD R13!,{R0-R4,PC}
+	LDMEQFD	R13!,{R0-R4,PC}
 
 	TEQ	R2,#24
 	TSTEQ	R0,#F_CtrlX
-	LDMEQFD R13!,{R0-R4,PC}
+	LDMEQFD	R13!,{R0-R4,PC}
 
 	TEQ	R2,#26
 	TSTEQ	R0,#F_CtrlZ
-	LDMEQFD R13!,{R0-R4,PC}
+	LDMEQFD	R13!,{R0-R4,PC}
 
-        MVN     R14,#0				; We've got this far; now we claim this poll and don't pass
-        STR     R14,[R13,#0]			; it on to the task.
+	MVN	R14,#0				; We've got this far; now we claim this poll and don't pass
+	STR	R14,[R13,#0]			; it on to the task.
 
-        TEQ     R2,#&11                         ; Ctrl-Q.  Set the Quote flag and exit.
+	TEQ	R2,#&11				; Ctrl-Q.  Set the Quote flag and exit.
 	LDREQ	R0,[R12,#WS_FlagWord]
-        ORREQ   R0,R0,#F_Quote
-        STREQ   R0,[R12,#WS_FlagWord]
-        LDMEQFD R13!,{R0-R4,PC}
+	ORREQ	R0,R0,#F_Quote
+	STREQ	R0,[R12,#WS_FlagWord]
+	LDMEQFD	R13!,{R0-R4,PC}
 
-        LDR     R1,[R12,#WS_PollBlockPtr]	; Get the icon details, using the window and icon
-        STR     R3,[R1,#0]			; handles we found earlier.
-        STR     R4,[R1,#4]
-        SWI     XWimp_GetIconState
-        LDMVSFD R13!,{R0-R4,PC}
+	LDR	R1,[R12,#WS_PollBlockPtr]	; Get the icon details, using the window and icon
+	STR	R3,[R1,#0]			; handles we found earlier.
+	STR	R4,[R1,#4]
+	SWI	XWimp_GetIconState
+	LDMVSFD	R13!,{R0-R4,PC}
 
-        MOV     R14,R2				; Stick the keypress into R14 out of the way.
+	MOV	R14,R2				; Stick the keypress into R14 out of the way.
 
-        LDR     R0,[R1,#24]                     ; Load the icon flags, and check that it's indirected...
-        TST     R0,#&01,24
-        BEQ     PostFilterNonIndirected		; ...if it isn't, we handle the text with a special case.
+	LDR	R0,[R1,#24]			; Load the icon flags, and check that it's indirected...
+	TST	R0,#&01,24
+	BEQ	PostFilterNonIndirected		; ...if it isn't, we handle the text with a special case.
 
- 	STMFD	R13!,{R0-R1,R14}
+	STMFD	R13!,{R0-R1,R14}
 	MOV	R0,#-1				; Find the limit of application space on this machine.
 	SWI	XOS_ReadDynamicArea
 	LDMVSFD	R13!,{R0-R1,R14}
 	LDMVSFD	R13!,{R0-R4,PC}
 
 	ADD	R0,R0,R2
-        LDR     R1,[R12,#WS_PollBlockPtr]       ; Check if the address is within the application space...
-        LDR     R2,[R1,#28]
-        CMP     R2,R0
+	LDR	R1,[R12,#WS_PollBlockPtr]       ; Check if the address is within the application space...
+	LDR	R2,[R1,#28]
+	CMP	R2,R0
 	LDMFD	R13!,{R0-R1,R14}
-        BGE     PostFilterMemoryMappedOK	; ...if it isn't, we know we can access it, otherwise...
+	BGE	PostFilterMemoryMappedOK	; ...if it isn't, we know we can access it, otherwise...
 
-        STMFD   R13!,{R0-R3,R14}		; ...collect and compare the task handle of the icon's owner with
-        LDR     R1,[R12,#WS_PollBlockPtr]	; the current task handle, and exit if they are not the same.
-        LDR     R2,[R1,#0]			; If the icon doesn't belong to the current task, the indirected
-        LDR     R3,[R1,#4]			; data will be mapped out of memory...
-        ADD     R1,R1,#&80
-        MOV     R0,#20
-        STR     R0,[R1,#0]
+	STMFD	R13!,{R0-R3,R14}		; ...collect and compare the task handle of the icon's owner with
+	LDR	R1,[R12,#WS_PollBlockPtr]	; the current task handle, and exit if they are not the same.
+	LDR	R2,[R1,#0]			; If the icon doesn't belong to the current task, the indirected
+	LDR	R3,[R1,#4]			; data will be mapped out of memory...
+	ADD	R1,R1,#&80
+	MOV	R0,#20
+	STR	R0,[R1,#0]
 	MOV	R0,#0
 	STR	R0,[R1,#12]
-        MOV     R0,#19
-        SWI     XWimp_SendMessage
-        BLVS    ReportWimpError
+	MOV	R0,#19
+	SWI	XWimp_SendMessage
+	BLVS	ReportWimpError
 
-        MOV     R0,#5
-        SWI     XWimp_ReadSysInfo
-        BLVS    ReportWimpError
-        CMP     R0,R2
-        LDMFD   R13!,{R0-R3,R14}
-        LDMNEFD R13!,{R0-R4,PC}
+	MOV	R0,#5
+	SWI	XWimp_ReadSysInfo
+	BLVS	ReportWimpError
+	CMP	R0,R2
+	LDMFD	R13!,{R0-R3,R14}
+	LDMNEFD	R13!,{R0-R4,PC}
 
 PostFilterMemoryMappedOK
-        SUB     R3,R2,#1			; We now know that we can access the indirected memory.
+	SUB	R3,R2,#1			; We now know that we can access the indirected memory.
 
 PostFilterStrLenLoop
-        LDRB    R0,[R3,#1]!			; Find the length of the (asssumed control terminated) string.
-        CMP     R0,#32
-        BGE     PostFilterStrLenLoop
+	LDRB	R0,[R3,#1]!			; Find the length of the (asssumed control terminated) string.
+	CMP	R0,#32
+	BGE	PostFilterStrLenLoop
 
-        SUB     R3,R3,R2			; Store the string length into R3 (R2 is address of string).
+	SUB	R3,R3,R2			; Store the string length into R3 (R2 is address of string).
 
 PostFilterBranch
-        ADD     R3,R3,R2			; R2 = String start; R3 = String end.
+	ADD	R3,R3,R2			; R2 = String start; R3 = String end.
 
-        TEQ     R14,#3				; Ctrl-C
-        TEQNE   R14,#&18                        ; Ctrl-X
-        BEQ     PostFilterCutCopy
+	TEQ	R14,#3				; Ctrl-C
+	TEQNE	R14,#&18			; Ctrl-X
+	BEQ	PostFilterCutCopy
 
-        TEQ     R14,#&16                        ; Ctrl-V
-        TEQNE   R14,#&1A                        ; Ctrl-Z
-        BEQ     PostFilterPasteReplace
+	TEQ	R14,#&16			; Ctrl-V
+	TEQNE	R14,#&1A			; Ctrl-Z
+	BEQ	PostFilterPasteReplace
 
-        TEQ     R14,#4				; Ctrl-D
-        BEQ     PostFilterRemoveExt
+	TEQ	R14,#4				; Ctrl-D
+	BEQ	PostFilterRemoveExt
 
-        TEQ     R14,#5				; Ctrl-E
-        BEQ     PostFilterKeepExt
+	TEQ	R14,#5				; Ctrl-E
+	BEQ	PostFilterKeepExt
 
-        TEQ     R14,#&0B                        ; Ctrl-K
-        BEQ     PostFilterDeleteBack
+	TEQ	R14,#&0B			; Ctrl-K
+	BEQ	PostFilterDeleteBack
 
 	TEQ	R14,#&13			; Ctrl-S
 	BEQ	PostFilterSwapCase
@@ -900,25 +900,25 @@ PostFilterBranch
 	TEQ	R14,#&14			; Ctrl-T
 	BEQ	PostFilterInsertDate
 
-        LDMFD   R13!,{R0-R4,PC}
+	LDMFD	R13!,{R0-R4,PC}
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------
 ; Count the length of a non-indirected icon.  R3 returns the number of characters (excluding terminator).
 
 PostFilterNonIndirected
-        ADD     R2,R1,#28			; Point R2 to the start of the icon text in the icon block.
-        MOV     R3,#0
+	ADD	R2,R1,#28			; Point R2 to the start of the icon text in the icon block.
+	MOV	R3,#0
 
 PostFilterNonIndirectedLoop
-        LDRB    R0,[R2,R3]			; Count the number of characters in the string, terminating
-        CMP     R0,#&20				; when a ctrl character is met or the 12 character limit is up.
-        BLT     PostFilterBranch
+	LDRB	R0,[R2,R3]			; Count the number of characters in the string, terminating
+	CMP	R0,#&20				; when a ctrl character is met or the 12 character limit is up.
+	BLT	PostFilterBranch
 
-        ADD     R3,R3,#1
-        CMP     R3,#12
-        MOVGT   R3,#12
-        BGE     PostFilterBranch
-        B       PostFilterNonIndirectedLoop
+	ADD	R3,R3,#1
+	CMP	R3,#12
+	MOVGT	R3,#12
+	BGE	PostFilterBranch
+	B	PostFilterNonIndirectedLoop
 
 ; ==========================================================================================================================================
 ; Cut or copy the contents of an icon to our clipboard, claiming memory from the RMA to do so.
@@ -926,41 +926,41 @@ PostFilterNonIndirectedLoop
 ; On entry R2=Start of text; R3=End of text.
 
 PostFilterCutCopy
-        LDR     R0,[R12,#WS_ContentPtr]		; If we don't already own the clipboard, set the pollword so that a
-        CMP     R0,#0				; Message_ClaimEntity is sent out when we get back to our own task.
-        MOVEQ   R0,#&43				; (Ctrl-C)
-        STREQ   R0,[R12,#WS_PollWord]
+	LDR	R0,[R12,#WS_ContentPtr]		; If we don't already own the clipboard, set the pollword so that a
+	CMP	R0,#0				; Message_ClaimEntity is sent out when we get back to our own task.
+	MOVEQ	R0,#&43				; (Ctrl-C)
+	STREQ	R0,[R12,#WS_PollWord]
 
-        BL      FreeClipboardContents		; Throw away anything currently in the clipboard.
+	BL	FreeClipboardContents		; Throw away anything currently in the clipboard.
 
-        MOV     R4,R2				; Claim memory from the RMA to hold the text between R2 and R3.
-        SUB     R3,R3,R2			; The length of the text is stored for future use
-        STR     R3,[R12,#WS_ContentLen]
-        ADD     R3,R3,#1
-        MOV     R0,#6
-        SWI     XOS_Module
-        STR     R2,[R12,#WS_ContentPtr]
-        MOV     R14,R4
+	MOV	R4,R2				; Claim memory from the RMA to hold the text between R2 and R3.
+	SUB	R3,R3,R2			; The length of the text is stored for future use
+	STR	R3,[R12,#WS_ContentLen]
+	ADD	R3,R3,#1
+	MOV	R0,#6
+	SWI	XOS_Module
+	STR	R2,[R12,#WS_ContentPtr]
+	MOV	R14,R4
 
 PostFilterCutCopyLoop				; Copy the icon text into our workspace.
-        SUBS    R3,R3,#1
-        BLE     PostFilterCutCopyLoopExit
-        LDRB    R0,[R4],#1
-        STRB    R0,[R2],#1
-        B	PostFilterCutCopyLoop
+	SUBS	R3,R3,#1
+	BLE	PostFilterCutCopyLoopExit
+	LDRB	R0,[R4],#1
+	STRB	R0,[R2],#1
+	B	PostFilterCutCopyLoop
 
 PostFilterCutCopyLoopExit
-        MOV     R0,#0				; Terminate the copied clipboard text.
-        STRB    R0,[R2,#0]
+	MOV	R0,#0				; Terminate the copied clipboard text.
+	STRB	R0,[R2,#0]
 
-        LDR     R1,[R13,#4]			; Check the keypress.  If it was Ctrl-C, exit.
-        LDR     R0,[R1,#&018]
-        TEQ     R0,#&18                         ; Ctrl-X
-        LDMNEFD R13!,{R0-R4,PC}
+	LDR	R1,[R13,#4]			; Check the keypress.  If it was Ctrl-C, exit.
+	LDR	R0,[R1,#&018]
+	TEQ	R0,#&18				; Ctrl-X
+	LDMNEFD	R13!,{R0-R4,PC}
 
-        MOV     R0,#&0D				; If the keypress was Ctrl-X, clear the icon contents
-        STRB    R0,[R14,#0]			; by placing a CR at the start and refreshing it.
-        B       PostFilterRefreshIcon
+	MOV	R0,#&0D				; If the keypress was Ctrl-X, clear the icon contents
+	STRB	R0,[R14,#0]			; by placing a CR at the start and refreshing it.
+	B	PostFilterRefreshIcon
 
 ; ==========================================================================================================================================
 ; Insert the clipboard contents at the caret, using OS_Byte &8A.  If Ctrl-Z was used, prefix the
