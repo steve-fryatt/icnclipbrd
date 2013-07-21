@@ -12,40 +12,7 @@
 
 ; SWI Names
 
-XWimp_CloseDown				EQU &0600DD
-XWimp_Initialise			EQU &0600C0
-OS_Exit					EQU &000011
-Wimp_Poll				EQU &0400C7
-XWimp_SendMessage			EQU &0600E7
-XWimp_TransferBlock			EQU &0600F1
-XOS_Byte				EQU &020006
-Wimp_SendMessage			EQU &0400E7
-XOS_Find				EQU &02000D
-XOS_BGet				EQU &02000A
-XOS_FSControl				EQU &020029
-XOS_File				EQU &020008
-XWimp_ReportError			EQU &0600DF
-XOS_Module				EQU &02001E
-XFilter_RegisterPostFilter		EQU &062641
-XFilter_DeRegisterPostFilter		EQU &062643
-XWimp_GetIconState			EQU &0600CE
-XWimp_ReadSysInfo			EQU &0600F2
-XWimp_SetIconState			EQU &0600CD
-XWimp_GetCaretPosition			EQU &0600D3
-XWimp_SetCaretPosition			EQU &0600D2
-OS_WriteI				EQU &000100
-XOS_ReadDynamicArea			EQU &02005C
-XOS_ReadUnsigned			EQU &020021
-XOS_NewLine				EQU &020003
-XOS_WriteS				EQU &020001
-XOS_WriteN				EQU &020046
-XTerritory_CharacterPropertyTable	EQU &063056
-XTerritory_LowerCaseTable		EQU &063057
-XTerritory_UpperCaseTable		EQU &063058
-XOS_Word				EQU &020007
-XTerritory_ConvertDateAndTime		EQU &06304B
-XOS_ReadVarVal				EQU &020023
-
+	GET	$Include/SWINames
 
 ; Service Calls
 
