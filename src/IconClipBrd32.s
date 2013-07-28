@@ -1317,9 +1317,20 @@ CommandCode_Desktop
 	STMFD	R13!,{R14}
 	LDR	R0,[R12,#WS_TaskHandle]
 	CMP	R0,#0
-	ADRGT	R0,ErrorBlock
-	MSRGT	CPSR_f,#9<<28
-	LDMGTFD	R13!,{PC}
+	BLE	CommandDesktopOK
+	
+CommandDesktopError
+	ADR	R0,ErrorBlock
+	TEQ	R0,R0
+	TEQ	PC,PC
+	LDMNEFD	R13!,{R14}
+	ORRNES	PC,R14,#9 << 28
+	MSR	CPSR_f, #9 << 28
+	LDMFD	R13!,{PC}
+
+	; Pass *Desktop_IcnClipBrd to OS_Module.
+
+CommandDesktopOK
 	MOV	R0,#2
 	ADR	R1,TitleString
 	MOV	R2,#0
