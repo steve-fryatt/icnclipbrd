@@ -10,7 +10,7 @@
 =============================================================================
 IcnClipBrd - Global Clipboard in writable icons                  Version $$version$$
 
-(C) Thomas Leonard, 1999, Stephen Fryatt 2007            $$date$$
+(c) Thomas Leonard, 1999, Stephen Fryatt 2007            $$date$$
 =============================================================================
 </literal>
 
@@ -31,11 +31,11 @@ IcnClipBrd - Global Clipboard in writable icons                  Version $$versi
 
 <chapter title="Introduction" file="Introduction">
 
-The global clipboard provides a way of transferring data between applications.  You select the data in one application and cut or copy it onto the clipboard (usually using <key>ctrl-X</key> and <key>ctrl-C</key>). You then move to the other application and paste the data from the clipboard (usually <key>ctrl-V</key>).
+The global clipboard provides a way of transferring data between applications. You select the data in one application and cut or copy it onto the clipboard (usually using <key>ctrl-X</key> and <key>ctrl-C</key>). You then move to the other application and paste the data from the clipboard (usually <key>ctrl-V</key>).
 
-<cite>IcnClipBrd</cite>, is a small module for users with RISC OS 3.1 or later, which allows you to cut and paste in writeable icons using the global clipboard.
+<cite>IcnClipBrd</cite>, is a small module for users with RISC&nbsp;OS&nbsp;3.5 or later, which allows you to cut and paste in writeable icons using the global clipboard.
 
-The module was originally written by Thomas Leonard, and has been converted to 32-bit for use on RISC OS 5 by myself (Stephen Fryatt).  I would like to thank Thomas for allowing the module to be placed in the Public Domain; any problems encountered using the updated module are likely to be my fault and should be reported first to the address below.
+The module was originally written by Thomas Leonard, and has been converted to 32-bit for use on RISC&nbsp;OS&nbsp;5 by myself (Stephen Fryatt). I would like to thank Thomas for allowing the module to be placed in the Public Domain; any problems encountered using the updated module are likely to be my fault and should be reported first to the address below.
 
 </chapter>
 
@@ -44,11 +44,11 @@ The module was originally written by Thomas Leonard, and has been converted to 3
 
 <chapter title="Installation" file="Installation">
 
-<cite>IcnClipBrd</cite> requires RISC OS 3.5 or later.
+<cite>IcnClipBrd</cite> requires RISC&nbsp;OS&nbsp;3.5 or later.
 
-Installing <cite>IcnClipBrd</cite> is a matter of running the <file>!IcnClpBrd</file> application supplied in the archive.  As standard, this will load the IcnClipBrd module and enable all the keypresses described in this manual. If you wish to run <cite>IconClipBrd</cite> on startup, you should add it to the 'Run list' in <cite>Configure</cite>.  To do this, double-click on <file>!Boot</file>, open the <icon>Boot</icon> option and then open the <icon>Run</icon> window.  Drag <file>!IcnClpBrd</file> into the scrolling list and click on the two <icon>Set</icon> buttons.
+Installing <cite>IcnClipBrd</cite> is a matter of running the <file>!IcnClpBrd</file> application supplied in the archive. As standard, this will load the IcnClipBrd module and enable all the keypresses described in this manual. If you wish to run <cite>IconClipBrd</cite> on startup, you should add it to the &lsquo;Run list&rsquo; in <cite>Configure</cite>. To do this, double-click on <file>!Boot</file>, open the <icon>Boot</icon> option and then open the <icon>Run</icon> window. Drag <file>!IcnClpBrd</file> into the scrolling list and click on the two <icon>Set</icon> buttons.
 
-Earlier versions of <cite>IcnClipBrd</cite> were supplied as a module on its own. This release can still be used in this way, if the ability to configure the available keypresses is not required or if alternative arrangements are made.  The <file>IcnClipBrd</file> module can be found inside the <file>!IcnClpBrd</file> application.
+Earlier versions of <cite>IcnClipBrd</cite> were supplied as a module on its own. This release can still be used in this way, if the ability to configure the available keypresses is not required or if alternative arrangements are made. The <file>IcnClipBrd</file> module can be found inside the <file>!IcnClpBrd</file> application.
 
 If you have a copy of the <cite>DeepKeys</cite> module installed on your system (it is used by a number of applications to provide keyboard handling facilities), note that earlier versions can cause a clash with <cite>IcnClipBrd</cite> and prevent text being pasted correctly. If you experience problems, check that you have at least version 2.06 of <cite>DeepKeys</cite>; recent versions can be found at <link ref="http://sudden.recoil.org/deepkeys.zip">http://sudden.recoil.org/deepkeys.zip</link>
 
@@ -60,7 +60,7 @@ If you have a copy of the <cite>DeepKeys</cite> module installed on your system 
 
 <chapter title="Using the module" file="Use">
 
-To use <cite>IcnClipBrd</cite> the caret must be in a writable icon.  The following keys will now work:
+To use <cite>IcnClipBrd</cite> the caret must be in a writable icon. The following keys will now work:
 
 <list>
 <li><key>Ctrl-V</key> pastes the global clipboard into the icon.
@@ -75,9 +75,9 @@ To use <cite>IcnClipBrd</cite> the caret must be in a writable icon.  The follow
 
 <li><key>Ctrl-E</key> extracts the extension only (eg. <code>NOTES/TXT</code> would become <code>TXT</code>).
 
-<li><key>Ctrl-K</key> deletes everything left of the cursor (not saved to  the clipboard).
+<li><key>Ctrl-K</key> deletes everything left of the cursor (not saved to the clipboard).
 
-<li><key>Ctrl-Q</key> passes the next keypress on to the task as though IcnClipBrd wasn't loaded.
+<li><key>Ctrl-Q</key> passes the next keypress on to the task as though IcnClipBrd wasn&rsquo;t loaded.
 </list>
 
 You can clear the icon without putting the contents on the clipboard by using <key>Ctrl-U</key>, as usual. <key>Ctrl-End</key> will delete the text from the caret to the end of the icon.
@@ -95,21 +95,21 @@ By default, dates are in the format DD Mmm YYYY, but other formats (including cu
 
 <subhead title="Configuring the module">
 
-By default, <cite>IcnClipBrd</cite> will intercept all of the keypresses listed above except for <key>Ctrl-S</key> and <key>Ctrl-T</key>.  This can be configured by the <command>*IcnClipBrdKeys</command> command.
+By default, <cite>IcnClipBrd</cite> will intercept all of the keypresses listed above except for <key>Ctrl-S</key> and <key>Ctrl-T</key>. This can be configured by the <command>*IcnClipBrdKeys</command> command.
 
 <comdef target="*IcnClipBrdKeys" params="[&lt;new keys&gt;]">
 
 The command <command>*IcnClipBrdKeys</command> is used to change the keys that the module intercepts, or to display the current configuration.
 
-The &lt;new keys&gt; parameter is a 10-bit binary number, constructed as 2_TSZXVQKEDC for the ten Ctrl keys.  Thus, enabling only the keys <key>Ctrl-C</key>, <key>Ctrl-Q</key>, <key>Ctrl-V</key>, <key>Ctrl-X</key> and <key>Ctrl-Z</key> would require the parameter <command>2_0011110001</command> (or <command>&F1</command>, or <command>241</command>).
+The &lt;new keys&gt; parameter is a 10-bit binary number, constructed as 2_TSZXVQKEDC for the ten Ctrl keys. Thus, enabling only the keys <key>Ctrl-C</key>, <key>Ctrl-Q</key>, <key>Ctrl-V</key>, <key>Ctrl-X</key> and <key>Ctrl-Z</key> would require the parameter <command>2_0011110001</command> (or <command>&F1</command>, or <command>241</command>).
 
 Without a parameter, the command prints a list of the keys currently being intercepted.
 
 </comdef>
 
-To adjust the format of the dates inserted by <key>Ctrl-T</key>, the system variable &lt;IcnClipBrd$DateFormat&gt; can be set.  The variable takes the 'Alarm-style' date format field names; the default format is DD Mmm YYYY, which would be set as <code>%DY %M3 %CE%YR</code>. If an error is encountered when <cite>IcnClipBrd</cite> tries to parse the string, the string itself will be pasted into the icon at the caret.
+To adjust the format of the dates inserted by <key>Ctrl-T</key>, the system variable &lt;IcnClipBrd$DateFormat&gt; can be set. The variable takes the &lsquo;Alarm-style&rsquo; date format field names; the default format is DD Mmm YYYY, which would be set as <code>%DY %M3 %CE%YR</code>. If an error is encountered when <cite>IcnClipBrd</cite> tries to parse the string, the string itself will be pasted into the icon at the caret.
 
-The <file>!IcnClpBrd</file> application contains an obey file called <file>Configure</file>, which calls the <command>*IcnClipBrdKeys</command> command and sets the system variable; this allows the keys to be set and the date format configured when the module is loaded.  Load the file into a text editor to modify it.
+The <file>!IcnClpBrd</file> application contains an obey file called <file>Configure</file>, which calls the <command>*IcnClipBrdKeys</command> command and sets the system variable; this allows the keys to be set and the date format configured when the module is loaded. Load the file into a text editor to modify it.
 
 </chapter>
 
@@ -121,9 +121,9 @@ The <file>!IcnClpBrd</file> application contains an obey file called <file>Confi
 Although there are currently no reported bugs in <cite>IcnClipBrd</cite>, the following issues are known to exist:
 
 <list spacing=1>
-<li>Following corrections made to <cite>IcnClipBrd</cite>'s handling of the data transfer protocol in version 0.11, a conflict with older versions of <cite>StrongED</cite> has appeared.  When pasting text from <cite>StrongED</cite> into an icon in a menu or transient dialogue box, the target window will close and the text will be pasted into the wrong location.   This has been resolved in recent versions of <cite>StrongED</cite>.
+<li>Following corrections made to <cite>IcnClipBrd</cite>&rsquo;s handling of the data transfer protocol in version 0.11, a conflict with older versions of <cite>StrongED</cite> has appeared. When pasting text from <cite>StrongED</cite> into an icon in a menu or transient dialogue box, the target window will close and the text will be pasted into the wrong location.  This has been resolved in recent versions of <cite>StrongED</cite>.
 
-<li>There are problems pasting text into icons in older versions of <cite>NetSurf</cite>.  The problem has been resolved in the <cite>NetSurf</cite> release versions 1.0 and 1.1, along with all recent (April 2007 onwards) test builds.
+<li>There are problems pasting text into icons in older versions of <cite>NetSurf</cite>. The problem has been resolved in the <cite>NetSurf</cite> release versions 1.0 and 1.1, along with all recent (April 2007 onwards) test builds.
 </list>
 
 </chapter>
@@ -133,7 +133,7 @@ Although there are currently no reported bugs in <cite>IcnClipBrd</cite>, the fo
 
 <chapter title="Other information" file="Extra">
 
-<cite>IcnClipBrd</cite> was written by Thomas Leonard as part of his <cite>Clipboard</cite> application.  The 32-bit conversion and all updates from version 0.07 onwards have been done by Stephen Fryatt.
+<cite>IcnClipBrd</cite> was written by Thomas Leonard as part of his <cite>Clipboard</cite> application. The 32-bit conversion and all updates from version 0.07 onwards have been done by Stephen Fryatt.
 
 </chapter>
 
@@ -178,11 +178,11 @@ Development taken over by Stephen Fryatt
 Alpha release for testing
 
 <list>
-<li>ARMalyser output code tidied, commented and made more maintainable.
+<li><cite>ARMalyser</cite> output code tidied, commented and made more maintainable.
 <li>Fixed some possible 32-bit flag-preservation issues.
-<li>Fixed YourRef on Message_DataLoadAck.
-<li>Fixed task handle on Message_RAMFetch in RAMTransmit handler.
-<li>WimpSlot detected using OS_ReadDynamicArea (making the code require a minimum of RISC OS 3.5).
+<li>Fixed YourRef on <code>Message_DataLoadAck</code>.
+<li>Fixed task handle on <code>Message_RAMFetch</code> in RAMTransmit handler.
+<li>WimpSlot detected using <code>OS_ReadDynamicArea</code> (making the code require a minimum of RISC&nbsp;OS&nbsp;3.5).
 <li>RAM Transfer code reinstated.
 <li>Restored <key>Ctrl-D</key> and <key>Ctrl-E</key> keypresses.
 </list>
@@ -191,7 +191,7 @@ Alpha release for testing
 <subhead title="0.11 (18 June 2007)">
 
 <list>
-<li>Command *IcnClipBrdKeys added to allow individual keypresses to be disabled.
+<li>Command <command>*IcnClipBrdKeys</command> added to allow individual keypresses to be disabled.
 <li>Further tweaks made to data transfer code.
 </list>
 
@@ -232,7 +232,7 @@ Limited issue for test purposes.
 <subhead title="0.16 (20 January 2012)">
 
 <list>
-<li>Fixed unaligned memory access in Ctrl-S and Ctrl-D routines.
+<li>Fixed unaligned memory access in <key>Ctrl-S</key> and <key>Ctrl-D</key> routines.
 </list>
 
 </chapter>
