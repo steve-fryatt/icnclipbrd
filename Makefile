@@ -63,17 +63,12 @@ MKDIR := mkdir
 RM := rm -rf
 CP := cp
 
-ZIP := /home/steve/GCCSDK/env/bin/zip
+ZIP := $(GCCSDK_INSTALL_ENV)/bin/zip
 
-SFBIN := /home/steve/GCCSDK/sfbin
-
-TEXTMAN := $(SFBIN)/textman
-STRONGMAN := $(SFBIN)/strongman
-HTMLMAN := $(SFBIN)/htmlman
-DDFMAN := $(SFBIN)/ddfman
-BINDHELP := $(SFBIN)/bindhelp
-TEXTMERGE := $(SFBIN)/textmerge
-MENUGEN := $(SFBIN)/menugen
+TEXTMAN := $(SFTOOLS_BIN)/mantools
+BINDHELP := $(SFTOOLS_BIN)/bindhelp
+TEXTMERGE := $(SFTOOLS_BIN)/textmerge
+MENUGEN := $(SFTOOLS_BIN)/menugen
 
 
 # Build Flags
@@ -145,7 +140,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.s
 documentation: $(OUTDIR)/$(APP)/$(TEXTHELP) $(OUTDIR)/$(README)
 
 $(OUTDIR)/$(APP)/$(TEXTHELP): $(MANUAL)/$(MANSRC)
-	$(TEXTMAN) -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(APP)/$(TEXTHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
+	$(mantools) -MTEXT -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(APP)/$(TEXTHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
 
 $(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(TEXTHELP) $(MANUAL)/$(READMEHDR)
 	$(TEXTMERGE) $(OUTDIR)/$(README) $(OUTDIR)/$(APP)/$(TEXTHELP) $(MANUAL)/$(READMEHDR) 5
