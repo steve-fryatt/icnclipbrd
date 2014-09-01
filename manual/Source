@@ -10,7 +10,7 @@
 =============================================================================
 IcnClipBrd - Global Clipboard in writable icons                  Version $$version$$
 
-(c) Thomas Leonard, 1999, Stephen Fryatt 2007            $$date$$
+(c) Thomas Leonard, 1999-2004, Stephen Fryatt, 2004-2014 $$date$$
 =============================================================================
 </literal>
 
@@ -245,7 +245,6 @@ Limited issue for test purposes.
 </chapter>
 
 <literal mode="Text">
-
 
 Updates and Contacting Me
 -------------------------
