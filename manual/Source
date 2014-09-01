@@ -235,6 +235,13 @@ Limited issue for test purposes.
 <li>Fixed unaligned memory access in <key>Ctrl-S</key> and <key>Ctrl-D</key> routines.
 </list>
 
+
+<subhead title="0.17 (01 September 2014)">
+
+<list>
+<li>Fix error handling for <command>*Desktop_IcnClipBrd</command>.
+</list>
+
 </chapter>
 
 <literal mode="Text">
