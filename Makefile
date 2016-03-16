@@ -1,4 +1,4 @@
-# Copyright 2013, Stephen Fryatt (info@stevefryatt.org.uk)
+# Copyright 2013-2016, Stephen Fryatt (info@stevefryatt.org.uk)
 #
 # This file is part of IcnClipBrd:
 #
@@ -24,148 +24,12 @@
 # It is intended for native compilation on Linux (for use in a GCCSDK
 # environment) or cross-compilation under the GCCSDK.
 
-# Set VERSION to build using a version number and not an SVN revision.
+ARCHIVE := icnclipbrd
 
-.PHONY: all clean application documentation release backup
-
-# The build date.
-
-BUILD_DATE := $(shell date "+%d %b %Y")
-HELP_DATE := $(shell date "+%-d %B %Y")
-
-# Construct version or revision information.
-
-ifeq ($(VERSION),)
-  RELEASE := $(shell svnversion --no-newline)
-  VERSION := r$(RELEASE)
-  RELEASE := $(subst :,-,$(RELEASE))
-  HELP_VERSION := ----
-else
-  RELEASE := $(subst .,,$(VERSION))
-  HELP_VERSION := $(VERSION)
-endif
-
-$(info Building with version $(VERSION) ($(RELEASE)) on date $(BUILD_DATE))
-
-# The archive to assemble the release files in.  If $(RELEASE) is set, then the file can be given
-# a standard version number suffix.
-
-ZIPFILE := icnclipbrd$(RELEASE).zip
-SRCZIPFILE := icnclipbrd$(RELEASE)src.zip
-BUZIPFILE := icnclipbrd$(shell date "+%Y%m%d").zip
-
-# Build Tools
-
-AS := $(wildcard $(GCCSDK_INSTALL_CROSSBIN)/*asasm)
-STRIP := $(wildcard $(GCCSDK_INSTALL_CROSSBIN)/*strip)
-
-MKDIR := mkdir
-RM := rm -rf
-CP := cp
-
-ZIP := $(GCCSDK_INSTALL_ENV)/bin/zip
-
-MANTOOLS := $(SFTOOLS_BIN)/mantools
-BINDHELP := $(SFTOOLS_BIN)/bindhelp
-TEXTMERGE := $(SFTOOLS_BIN)/textmerge
-MENUGEN := $(SFTOOLS_BIN)/menugen
-
-
-# Build Flags
-
-ASFLAGS :=
-STRIPFLAGS := -O binary
-ZIPFLAGS := -x "*/.svn/*" -r -, -9
-SRCZIPFLAGS := -x "*/.svn/*" -r -9
-BUZIPFLAGS := -x "*/.svn/*" -r -9
-BINDHELPFLAGS := -f -r -v
-
-
-# Set up the various build directories.
-
-SRCDIR := src
-MANUAL := manual
-OBJDIR := obj
-OUTDIR := build
-
-
-# Set up the named target files.
-
-APP := !IcnClpBrd
-UKRES := Resources/UK
-RUNIMAGE := IcnClipBrd,ffa
-TEXTHELP := !Help,fff
-README := ReadMe,fff
-LICENSE := Licence,fff
-
-
-# Set up the source files.
-
-MANSRC := Source
-MANSPR := ManSprite
-READMEHDR := Header
+MODULE := IcnClpBrd,ffa
+APP = !IcnClpBrd
 
 OBJS := IconClipBrd32.o
 
-# Build everything, but don't package it for release.
+include $(SFTOOLS_MAKE)/Module
 
-all: application documentation
-
-
-# Build the application and its supporting binary files.
-
-application: $(OUTDIR)/$(APP)/$(RUNIMAGE)
-
-
-# Build the complete !RunImage from the object files.
-
-OBJS := $(addprefix $(OBJDIR)/, $(OBJS))
-
-$(OUTDIR)/$(APP)/$(RUNIMAGE): $(OBJS) $(OBJDIR)
-	$(STRIP) $(STRIPFLAGS) -o $(OUTDIR)/$(APP)/$(RUNIMAGE) $(OBJS)
-
-# Create a folder to hold the object files.
-
-$(OBJDIR):
-	$(MKDIR) $(OBJDIR)
-
-# Build the object files, and identify their dependencies.
-
-$(OBJDIR)/%.o: $(SRCDIR)/%.s
-	$(AS) $(ASFLAGS) -PreDefine 'Include SETS "$(GCCSDK_INSTALL_ENV)/include"' -PreDefine 'BuildDate SETS "\"$(BUILD_DATE)\""' -PreDefine 'BuildVersion SETS "\"$(VERSION)\""' -o $@ $<
-
-
-# Build the documentation
-
-documentation: $(OUTDIR)/$(APP)/$(TEXTHELP) $(OUTDIR)/$(README)
-
-$(OUTDIR)/$(APP)/$(TEXTHELP): $(MANUAL)/$(MANSRC)
-	$(MANTOOLS) -MTEXT -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(APP)/$(TEXTHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
-
-$(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(TEXTHELP) $(MANUAL)/$(READMEHDR)
-	$(TEXTMERGE) $(OUTDIR)/$(README) $(OUTDIR)/$(APP)/$(TEXTHELP) $(MANUAL)/$(READMEHDR) 5
-
-
-# Build the release Zip file.
-
-release: clean all
-	$(RM) ../$(ZIPFILE)
-	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(APP) $(README) $(LICENSE))
-	$(RM) ../$(SRCZIPFILE)
-	$(ZIP) $(SRCZIPFLAGS) ../$(SRCZIPFILE) $(OUTDIR) $(SRCDIR) $(MANUAL) Makefile
-
-
-# Build a backup Zip file
-
-backup:
-	$(RM) ../$(BUZIPFILE)
-	$(ZIP) $(BUZIPFLAGS) ../$(BUZIPFILE) *
-
-
-# Clean targets
-
-clean:
-	$(RM) $(OBJDIR)/*
-	$(RM) $(OUTDIR)/$(APP)/$(RUNIMAGE)
-	$(RM) $(OUTDIR)/$(APP)/$(TEXTHELP)
-	$(RM) $(OUTDIR)/$(README)
