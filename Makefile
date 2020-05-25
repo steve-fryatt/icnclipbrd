@@ -26,7 +26,7 @@
 
 ARCHIVE := icnclipbrd
 
-MODULE := IcnClpBrd,ffa
+MODULE := IcnClipBrd,ffa
 APP = !IcnClpBrd
 
 OBJS := IconClipBrd32.o
