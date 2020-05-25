@@ -34,9 +34,15 @@ Message_DataRequest			EQU &10
 Message_Quit				EQU 0
 
 
-; Key codes
+; Key codes which can be stored in the PollWord
 
 Ctrl_C					EQU &43
+Ctrl_V					EQU &56
+Ctrl_X					EQU &58
+
+; Stack Size
+
+StackSize				EQU &130
 
 
 ; Workspace usage
@@ -50,11 +56,23 @@ WS_ContentLen				#	4
 WS_BytesSent				#	4
 WS_FlagWord				#	4
 WS_OtherTask				#	4
-WS_PollBlock				#	288
+WS_PollBlock				#	StackSize
 WS_UCTable				#	4
 WS_LCTable				#	4
 WS_CPTable				#	4
 WS_UPTable				#	8	; Old code allocated 8 bytes here?!
+WS_KeyCopy				#	1
+WS_KeyCut				#	1
+WS_KeyPaste				#	1
+WS_KeyPasteDel				#	1
+WS_KeyDeDosify				#	1
+WS_KeyExtension				#	1
+WS_KeyDeleteLeft			#	1
+WS_KeySwapCase				#	1
+WS_KeyDateTime				#	1
+WS_KeyQuoteReq				#	1
+WS_KeyUnused				#	1
+WS_KeyTerminator			#	1
 WS_Size					*	@
 
 
@@ -62,17 +80,20 @@ WS_Size					*	@
 
 F_Quote					EQU &000001
 
-F_CtrlC					EQU &000100
-F_CtrlD					EQU &000200
-F_CtrlE					EQU &000400
-F_CtrlK					EQU &000800
-F_CtrlQ					EQU &001000
-F_CtrlV					EQU &002000
-F_CtrlX					EQU &004000
-F_CtrlZ					EQU &008000
-F_CtrlS					EQU &010000
-F_CtrlT					EQU &020000
+F_Copy					EQU &000100	; F_Copy is assumed to be the lowest bit
+F_Cut					EQU &000200
+F_Paste					EQU &000400
+F_PasteDel				EQU &000800
+F_DeDosify				EQU &001000
+F_Extension				EQU &002000
+F_DeleteLeft				EQU &004000
+F_SwapCase				EQU &008000
+F_DateTime				EQU &010000
+F_QuoteReq				EQU &020000
+F_Unused				EQU &040000
+F_Terminator				EQU &080000
 
+F_KeyMask				EQU &0FFF00
 
 ; The RAM Transfer Block is specified as an offset into the Wimp Poll Block.
 
@@ -131,8 +152,8 @@ CommandTable
 
 StartCode
 	LDR	R12,[R12]			; Initialise the workspace and stack.
-	LDR	R13,[R12,#WS_PollBlockPtr]
-	ADD	R13,R13,#&120
+	LDR	R13,[R12,#WS_PollBlockPtr]	; The stack resides in the top of the
+	ADD	R13,R13,#StackSize		; Wimp_Poll block.
 
 	LDR	R0,[R12,#WS_TaskHandle]		; Test the stored task handle to see if a task is
 	CMP	R0,#0				; already running.
@@ -154,9 +175,9 @@ StartNoTask
 	STR	R1,[R12,#WS_TaskHandle]
 
 WimpPollLoop
-	MOV	R0,#&06,22			; Enter the Wimp_Poll loop.
+	MOV	R0,#&1800			; Enter the Wimp_Poll loop.
 	ORR	R0,R0,#&31
-	ORR	R0,R0,#&01,10
+	ORR	R0,R0,#&00400000
 	LDR	R1,[R12,#WS_PollBlockPtr]
 	ADD	R3,R12,#WS_PollWord
 	SWI	Wimp_Poll
@@ -196,11 +217,11 @@ WimpPollWordNonZero
 	MOV	R0,#0
 	STR	R0,[R12,#WS_PollWord]
 
-	CMP	R2,#&43				; Ctrl-C
-	CMPNE	R2,#&58				; Ctrl-X
+	CMP	R2,#Ctrl_C
+	CMPNE	R2,#Ctrl_X
 	BEQ	WimpPollWord_CutCopy
 
-	CMP	R2,#&56				; Ctrl-V
+	CMP	R2,#Ctrl_V
 	BNE	WimpPollLoop
 
 WimpPollWord_Paste
@@ -661,7 +682,32 @@ InitialisationCode
 	SWI	XTerritory_CharacterPropertyTable
 	STR	R0,[R12,#WS_UPTable]
 
+	ADR	R1,InitialisationKeys		; Initialse the key settings in the workspace.
+	ADD	R2,R12,#WS_KeyCopy
+
+InitialisationKeyLoop
+	LDRB	R0,[R1],#1
+	STRB	R0,[R2],#1
+	CMP	R0,#255
+	BLT	InitialisationKeyLoop
+
 	LDMFD	R13!,{PC}
+
+; ------------------------------------------------------------------------------------------------------------------------------------------
+
+InitialisationKeys
+	DCB	3	; Copy			Ctrl-C
+	DCB	24	; Cut			Ctrl-X
+	DCB	22	; Paste			Ctrl-V
+	DCB	26	; Delete & Paste	Ctrl-Z
+	DCB	4	; DeDOSify		Ctrl-D
+	DCB	5	; Extension		Ctrl-E
+	DCB	11	; Delete Left		Ctrl-K
+	DCB	19	; Swap Case		Ctrl-S
+	DCB	20	; Date Time		Ctrl-T
+	DCB	17	; Quote			Ctrl-Q
+	DCB	0	; Unused
+	DCB	255	; List Terminator
 
 ; ==========================================================================================================================================
 ; Module Finalisation
@@ -719,79 +765,57 @@ PostFilter
 	LDR	R0,[R12,#WS_FlagWord]		; on if it is.
 	TST	R0,#F_Quote
 	BICNE	R0,R0,#F_Quote
-	STRNE	R0,[R12,#WS_FlagWord]
+	STRNE	R0,[R12,#WS_FlagWord]		; R0 Contains the flag word on exit.
 	LDMNEFD	R13!,{R0-R4,PC}
 
-	LDR	R1,[R13,#4]
-	LDR	R2,[R1,#24]			; Test the keypress against those that we respond to...
-	TEQ	R2,#3				; Ctrl-C
-	TEQNE	R2,#4				; Ctrl-D
-	TEQNE	R2,#5				; Ctrl-E
-	TEQNE	R2,#11				; Ctrl-K
-	TEQNE	R2,#17				; Ctrl-Q
-	TEQNE	R2,#19				; Ctrl-S
-	TEQNE	R2,#20				; Ctrl-T
-	TEQNE	R2,#22				; Ctrl-V
-	TEQNE	R2,#24				; Ctrl-X
-	TEQNE	R2,#26				; Ctrl-Z
-	LDMNEFD	R13!,{R0-R4,PC}			; ...and exit if we don't get a match.
+	LDR	R1,[R13,#4]			; Get the poll-block pointer into R1 again.
+	LDR	R2,[R1,#24]			; Get the key-code into R2.
 
-	TEQ	R2,#3				; Now test each key again, and check the relevant flag bit to see if
-	TSTEQ	R0,#F_CtrlC			; the key is being accepted.  If not, exit.
-	LDMEQFD	R13!,{R0-R4,PC}
+	LDR	R4,PostFilterKeyMask		; Clear the key match mask in the flags.
+	BIC	R0,R0,R4
 
-	TEQ	R2,#4
-	TSTEQ	R0,#F_CtrlD
-	LDMEQFD	R13!,{R0-R4,PC}
+	ADD	R1,R12,#WS_KeyCopy		; R1 points to the first key code.
+	MOV	R4,#F_Copy			; R4 is the next flag to set.
 
-	TEQ	R2,#5
-	TSTEQ	R0,#F_CtrlE
-	LDMEQFD	R13!,{R0-R4,PC}
+PostFilterKeyMatch
+	LDRB	R3,[R1],#1			; Load the next key code, and exit if it is
+	CMP	R3,#255				; the 255 terminator.
+	BEQ	PostFilterKeyMatchExit
 
-	TEQ	R2,#11
-	TSTEQ	R0,#F_CtrlK
-	LDMEQFD	R13!,{R0-R4,PC}
+	CMP	R3,#0				; If the key code is 0 ...
+	BEQ	PostFilterKeySkip		; ... skip to the next code.
 
-	TEQ	R2,#17
-	TSTEQ	R0,#F_CtrlQ
-	LDMEQFD	R13!,{R0-R4,PC}
+	TEQ	R2,R3				; Else test it against the keypress ...
+	ORREQ	R0,R0,R4			; ... and set the appropriate flag.
 
-	TEQ	R2,#19
-	TSTEQ	R0,#F_CtrlS
-	LDMEQFD	R13!,{R0-R4,PC}
+PostFilterKeySkip
+	MOV	R4,R4, LSL #1			; Shift the flag...
+	B	PostFilterKeyMatch		; ... and go around again.
 
-	TEQ	R2,#20
-	TSTEQ	R0,#F_CtrlT
-	LDMEQFD	R13!,{R0-R4,PC}
+PostFilterKeyMatchExit
+	STR	R0,[R12,#WS_FlagWord]		; Save the flags again.
 
-	TEQ	R2,#22
-	TSTEQ	R0,#F_CtrlV
-	LDMEQFD	R13!,{R0-R4,PC}
-
-	TEQ	R2,#24
-	TSTEQ	R0,#F_CtrlX
-	LDMEQFD	R13!,{R0-R4,PC}
-
-	TEQ	R2,#26
-	TSTEQ	R0,#F_CtrlZ
-	LDMEQFD	R13!,{R0-R4,PC}
+	LDR	R4,PostFilterKeyMask
+	TST	R0,R4
+	LDMEQFD	R13!,{R0-R4,PC}			; Exit if we didn't get a match in the flags.
 
 	MVN	R14,#0				; We've got this far; now we claim this poll and don't pass
 	STR	R14,[R13,#0]			; it on to the task.
 
-	TEQ	R2,#&11				; Ctrl-Q.  Set the Quote flag and exit.
-	LDREQ	R0,[R12,#WS_FlagWord]
-	ORREQ	R0,R0,#F_Quote
-	STREQ	R0,[R12,#WS_FlagWord]
-	LDMEQFD	R13!,{R0-R4,PC}
+	TST	R0,#F_QuoteReq			; Ctrl-Q.  Set the Quote flag and exit.
+	ORRNE	R0,R0,#F_Quote
+	STRNE	R0,[R12,#WS_FlagWord]
+	LDMNEFD	R13!,{R0-R4,PC}
 
-	LDR	R1,[R12,#WS_PollBlockPtr]	; Get the icon details, using the window and icon
-	STR	R3,[R1,#0]			; handles we found earlier.
+	LDR	R1,[R13,#4]			; Get the poll-block pointer into R1.
+	LDR	R3,[R1,#0]			; Load the window handle.
+	LDR	R4,[R1,#4]			; Load the icon handle.
+
+	LDR	R1,[R12,#WS_PollBlockPtr]	; Get the icon details
+	STR	R3,[R1,#0]
 	STR	R4,[R1,#4]
 	SWI	XWimp_GetIconState
 	LDMVSFD	R13!,{R0-R4,PC}
-
-	MOV	R14,R2				; Stick the keypress into R14 out of the way.
 
 	LDR	R0,[R1,#24]			; Load the icon flags, and check that it's indirected...
 	TST	R0,#&01,24
@@ -842,29 +866,28 @@ PostFilterStrLenLoop
 
 PostFilterBranch
 	ADD	R3,R3,R2			; R2 = String start; R3 = String end.
+	LDR	R0,[R12,#WS_FlagWord]
 
-	TEQ	R14,#3				; Ctrl-C
-	TEQNE	R14,#&18			; Ctrl-X
-	BEQ	PostFilterCutCopy
+	TST	R0,#F_Copy :OR: F_Cut
+	BNE	PostFilterCutCopy
 
-	TEQ	R14,#&16			; Ctrl-V
-	TEQNE	R14,#&1A			; Ctrl-Z
-	BEQ	PostFilterPasteReplace
+	TST	R0,#F_Paste :OR: F_PasteDel
+	BNE	PostFilterPasteReplace
 
-	TEQ	R14,#4				; Ctrl-D
-	BEQ	PostFilterRemoveExt
+	TST	R0,#F_DeDosify
+	BNE	PostFilterRemoveExt
 
-	TEQ	R14,#5				; Ctrl-E
-	BEQ	PostFilterKeepExt
+	TST	R0,#F_Extension
+	BNE	PostFilterKeepExt
 
-	TEQ	R14,#&0B			; Ctrl-K
-	BEQ	PostFilterDeleteBack
+	TST	R0,#F_DeleteLeft
+	BNE	PostFilterDeleteBack
 
-	TEQ	R14,#&13			; Ctrl-S
-	BEQ	PostFilterSwapCase
+	TST	R0,#F_SwapCase
+	BNE	PostFilterSwapCase
 
-	TEQ	R14,#&14			; Ctrl-T
-	BEQ	PostFilterInsertDate
+	TST	R0,#F_DateTime
+	BNE	PostFilterInsertDate
 
 	LDMFD	R13!,{R0-R4,PC}
 
@@ -886,6 +909,12 @@ PostFilterNonIndirectedLoop
 	BGE	PostFilterBranch
 	B	PostFilterNonIndirectedLoop
 
+; ------------------------------------------------------------------------------------------------------------------------------------------
+; The flags mask value
+
+PostFilterKeyMask
+	DCD	F_Copy :OR: F_Cut :OR: F_Paste :OR: F_PasteDel :OR: F_DeDosify :OR: F_Extension :OR: F_DeleteLeft :OR: F_SwapCase :OR: F_DateTime :OR: F_QuoteReq :OR: F_Unused :OR: F_Terminator
+
 ; ==========================================================================================================================================
 ; Cut or copy the contents of an icon to our clipboard, claiming memory from the RMA to do so.
 ;
@@ -894,7 +923,7 @@ PostFilterNonIndirectedLoop
 PostFilterCutCopy
 	LDR	R0,[R12,#WS_ContentPtr]		; If we don't already own the clipboard, set the pollword so that a
 	CMP	R0,#0				; Message_ClaimEntity is sent out when we get back to our own task.
-	MOVEQ	R0,#&43				; (Ctrl-C)
+	MOVEQ	R0,#Ctrl_C			; (Ctrl-C)
 	STREQ	R0,[R12,#WS_PollWord]
 
 	BL	FreeClipboardContents		; Throw away anything currently in the clipboard.
@@ -945,7 +974,7 @@ PostFilterPasteReplace
 	CMP	R4,#0				; just insert the text from the RMA.  If we don't...
 	BNE	PostFilterPasteReplaceInsert
 
-	MOV	R0,#&56				; ...we need to set the pollword so that we can send
+	MOV	R0,#Ctrl_V			; ...we need to set the pollword so that we can send
 	STR	R0,[R12,#WS_PollWord]		; a message for the clipboard contents when we next
 	LDMFD	R13!,{R0-R4,PC}			; get into the Wimp_Poll loop.
 
@@ -1250,52 +1279,52 @@ CommandKeys_Show
 	ADR	R0,CtrlText
 	MOV	R1,#5
 
-	TST	R6,#F_CtrlC
+	TST	R6,#F_Copy
 	SWINE	XOS_WriteN
 	SWINE	OS_WriteI+67
 	SWINE	OS_WriteI+32
 
-	TST	R6,#F_CtrlD
+	TST	R6,#F_DeDosify
 	SWINE	XOS_WriteN
 	SWINE	OS_WriteI+68
 	SWINE	OS_WriteI+32
 
-	TST	R6,#F_CtrlE
+	TST	R6,#F_Extension
 	SWINE	XOS_WriteN
 	SWINE	OS_WriteI+69
 	SWINE	OS_WriteI+32
 
-	TST	R6,#F_CtrlK
+	TST	R6,#F_DeleteLeft
 	SWINE	XOS_WriteN
 	SWINE	OS_WriteI+75
 	SWINE	OS_WriteI+32
 
-	TST	R6,#F_CtrlQ
+	TST	R6,#F_QuoteReq
 	SWINE	XOS_WriteN
 	SWINE	OS_WriteI+81
 	SWINE	OS_WriteI+32
 
-	TST	R6,#F_CtrlS
+	TST	R6,#F_SwapCase
 	SWINE	XOS_WriteN
 	SWINE	OS_WriteI+83
 	SWINE	OS_WriteI+32
 
-	TST	R6,#F_CtrlT
+	TST	R6,#F_DateTime
 	SWINE	XOS_WriteN
 	SWINE	OS_WriteI+84
 	SWINE	OS_WriteI+32
 
-	TST	R6,#F_CtrlV
+	TST	R6,#F_Paste
 	SWINE	XOS_WriteN
 	SWINE	OS_WriteI+86
 	SWINE	OS_WriteI+32
 
-	TST	R6,#F_CtrlX
+	TST	R6,#F_Cut
 	SWINE	XOS_WriteN
 	SWINE	OS_WriteI+88
 	SWINE	OS_WriteI+32
 
-	TST	R6,#F_CtrlZ
+	TST	R6,#F_PasteDel
 	SWINE	XOS_WriteN
 	SWINE	OS_WriteI+90
 	SWINE	OS_WriteI+32
