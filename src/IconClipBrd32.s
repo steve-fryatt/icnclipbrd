@@ -1288,7 +1288,7 @@ CommandKeys_SetPaste
 
 	BL	CommandKeys_Match
 	BVS     CommandKeys_SetExit
-	STRB	R0,[R12,#WS_KeyPasteDel]
+	STRB	R0,[R12,#WS_KeyPaste]
 
 CommandKeys_SetOverwrite
 	LDR	R0,[R2,#12]
@@ -1297,7 +1297,7 @@ CommandKeys_SetOverwrite
 
 	BL	CommandKeys_Match
 	BVS     CommandKeys_SetExit
-	STRB	R0,[R12,#WS_KeyExtension]
+	STRB	R0,[R12,#WS_KeyPasteDel]
 
 CommandKeys_SetExtension
 	LDR	R0,[R2,#16]
