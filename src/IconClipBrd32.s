@@ -1681,7 +1681,17 @@ CommandDesktopHelp
 
 CommandKeysHelp
 	DCB	"*",27,0," sets or displays the keys intercepted by IcnClipBrd.",13
-	DCB	"<new keys> is a number formed of binary digits %TSZXVQKEDC.",13
+	DCB	"<new keys> is one or more of the following options:",13
+	DCB	"-cut Ctrl-<key>|Off",13
+	DCB	"-copy Ctrl-<key>|Off",13
+	DCB	"-paste Ctrl-<key>|Off",13
+	DCB	"-overwrite Ctrl-<key>|Off",13
+	DCB	"-extension Ctrl-<key>|Off",13
+	DCB	"-filename Ctrl-<key>|Off",13
+	DCB	"-delleft Ctrl-<key>|Off",13
+	DCB	"-swapcase Ctrl-<key>|Off",13
+	DCB	"-datetime Ctrl-<key>|Off",13
+	DCB	"-quote Ctrl-<key>|Off",13
 
 CommandKeysSyntax
 	DCB	27,30,"<new keys>]",0
