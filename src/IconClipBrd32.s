@@ -547,10 +547,10 @@ MessageHandlerDataSaveAck
 
 ReportWimpError
 	ORR	R14,R14,#&01,4			; =1<<28, CAUTION: manipulation of PSR in address?. Function entry, (preserves flags)
-	STMFD	R13!,{R0-R2,R14}
+	PUSH	{R0-R2,LR}
 	MOV	R1,#5
 	SWI	XWimp_ReportError
-	LDMFD	R13!,{R0-R2,PC}
+	POP	{R0-R2,PC}
 
 ; ==========================================================================================================================================
 ; Message_ClaimEntity
@@ -640,12 +640,12 @@ MessageQuit
 ; Module Initialisation
 
 InitialisationCode
-	STMFD	R13!,{R14}
+	PUSH	{LR}
 
 	MOV	R0,#6				; Claim workspace from the module area.
 	MOV	R3,#WS_Size
 	SWI	XOS_Module
-	LDMVSFD	R13!,{PC}
+	POPVS	{PC}
 
 	STR	R2,[R12]			; If we claimed the memory, update the workspace pointer.
 
@@ -695,7 +695,7 @@ InitialisationKeyLoop
 	CMP	R0,#255
 	BLT	InitialisationKeyLoop
 
-	LDMFD	R13!,{PC}
+	POP	{PC}
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -717,7 +717,7 @@ InitialisationKeys
 ; Module Finalisation
 
 FinalisationCode
-	STMFD	R13!,{R14}
+	PUSH	{LR}
 
 	ADRL	R0,TitleString			; Deregister the filter.
 	ADR	R1,PostFilter
@@ -735,13 +735,13 @@ FinalisationCode
 	SWIGT	XWimp_CloseDown
 	MOV	R1,#0
 	STR	R1,[R12,#WS_TaskHandle]
-	LDMVSFD	R13!,{PC}
+	POPVS	{PC}
 
 	MOV	R0,#7				; Free the RMA workspace.
 	MOV	R2,R12
 	SWI	XOS_Module
 
-	LDMFD	R13!,{PC}
+	POP	{PC}
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -753,24 +753,24 @@ TaskWord
 
 PostFilter
 	TEQ	R0,#8				; Test for Key_Pressed events and pass on all else.
-	MOVNE	PC,R14
+	MOVNE	PC,LR
 
-	STMFD	R13!,{R0-R4,R14}
+	PUSH	{R0-R4,LR}
 
-	LDR	R3,[R1,#0]		        ; Load the window handle into R3; pass on if -1.
+	LDR	R3,[R1,#0]			; Load the window handle into R3; pass on if -1.
 	CMP	R3,#0
-	LDMLTFD	R13!,{R0-R4,PC}
+	POPLT	{R0-R4,PC}
 
 	LDR	R4,[R1,#4]			; Load the icon handle into R4; pass on if -1.
 	CMP	R4,#0
-	LDMLTFD	R13!,{R0-R4,PC}
+	POPLT	{R0-R4,PC}
 
 	LDR	R12,[R12]			; Check to see if the Quote flag is set, and pass
 	LDR	R0,[R12,#WS_FlagWord]		; on if it is.
 	TST	R0,#F_Quote
 	BICNE	R0,R0,#F_Quote
 	STRNE	R0,[R12,#WS_FlagWord]		; R0 Contains the flag word on exit.
-	LDMNEFD	R13!,{R0-R4,PC}
+	POPNE	{R0-R4,PC}
 
 	LDR	R1,[R13,#4]			; Get the poll-block pointer into R1 again.
 	LDR	R2,[R1,#24]			; Get the key-code into R2.
@@ -801,7 +801,7 @@ PostFilterKeyMatchExit
 
 	LDR	R4,PostFilterKeyMask
 	TST	R0,R4
-	LDMEQFD	R13!,{R0-R4,PC}			; Exit if we didn't get a match in the flags.
+	POPEQ	{R0-R4,PC}			; Exit if we didn't get a match in the flags.
 
 	MVN	R14,#0				; We've got this far; now we claim this poll and don't pass
 	STR	R14,[R13,#0]			; it on to the task.
@@ -809,7 +809,7 @@ PostFilterKeyMatchExit
 	TST	R0,#F_QuoteReq			; Ctrl-Q.  Set the Quote flag and exit.
 	ORRNE	R0,R0,#F_Quote
 	STRNE	R0,[R12,#WS_FlagWord]
-	LDMNEFD	R13!,{R0-R4,PC}
+	POPNE	{R0-R4,PC}
 
 	LDR	R1,[R13,#4]			; Get the poll-block pointer into R1.
 	LDR	R3,[R1,#0]			; Load the window handle.
@@ -819,26 +819,26 @@ PostFilterKeyMatchExit
 	STR	R3,[R1,#0]
 	STR	R4,[R1,#4]
 	SWI	XWimp_GetIconState
-	LDMVSFD	R13!,{R0-R4,PC}
+	POPVS	{R0-R4,PC}
 
 	LDR	R0,[R1,#24]			; Load the icon flags, and check that it's indirected...
 	TST	R0,#&01,24
 	BEQ	PostFilterNonIndirected		; ...if it isn't, we handle the text with a special case.
 
-	STMFD	R13!,{R0-R1,R14}
+	PUSH	{R0-R1,LR}
 	MOV	R0,#-1				; Find the limit of application space on this machine.
 	SWI	XOS_ReadDynamicArea
-	LDMVSFD	R13!,{R0-R1,R14}
-	LDMVSFD	R13!,{R0-R4,PC}
+	POPVS	{R0-R1,LR}
+	POPVS	{R0-R4,PC}
 
 	ADD	R0,R0,R2
 	LDR	R1,[R12,#WS_PollBlockPtr]       ; Check if the address is within the application space...
 	LDR	R2,[R1,#28]
 	CMP	R2,R0
-	LDMFD	R13!,{R0-R1,R14}
+	POP	{R0-R1,LR}
 	BGE	PostFilterMemoryMappedOK	; ...if it isn't, we know we can access it, otherwise...
 
-	STMFD	R13!,{R0-R3,R14}		; ...collect and compare the task handle of the icon's owner with
+	PUSH	{R0-R3,LR}			; ...collect and compare the task handle of the icon's owner with
 	LDR	R1,[R12,#WS_PollBlockPtr]	; the current task handle, and exit if they are not the same.
 	LDR	R2,[R1,#0]			; If the icon doesn't belong to the current task, the indirected
 	LDR	R3,[R1,#4]			; data will be mapped out of memory...
@@ -855,8 +855,8 @@ PostFilterKeyMatchExit
 	SWI	XWimp_ReadSysInfo
 	BLVS	ReportWimpError
 	CMP	R0,R2
-	LDMFD	R13!,{R0-R3,R14}
-	LDMNEFD	R13!,{R0-R4,PC}
+	POP	{R0-R3,LR}
+	POPNE	{R0-R4,PC}
 
 PostFilterMemoryMappedOK
 	SUB	R3,R2,#1			; We now know that we can access the indirected memory.
@@ -893,7 +893,7 @@ PostFilterBranch
 	TST	R0,#F_DateTime
 	BNE	PostFilterInsertDate
 
-	LDMFD	R13!,{R0-R4,PC}
+	POP	{R0-R4,PC}
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------
 ; Count the length of a non-indirected icon.  R3 returns the number of characters (excluding terminator).
@@ -955,7 +955,7 @@ PostFilterCutCopyLoopExit
 	LDR	R1,[R13,#4]			; Check the keypress.  If it was Ctrl-C, exit.
 	LDR	R0,[R1,#&018]
 	TEQ	R0,#&18				; Ctrl-X
-	LDMNEFD	R13!,{R0-R4,PC}
+	POPNE	{R0-R4,PC}
 
 	MOV	R0,#&0D				; If the keypress was Ctrl-X, clear the icon contents
 	STRB	R0,[R14,#0]			; by placing a CR at the start and refreshing it.
@@ -980,12 +980,12 @@ PostFilterPasteReplace
 
 	MOV	R0,#Ctrl_V			; ...we need to set the pollword so that we can send
 	STR	R0,[R12,#WS_PollWord]		; a message for the clipboard contents when we next
-	LDMFD	R13!,{R0-R4,PC}			; get into the Wimp_Poll loop.
+	POP	{R0-R4,PC}			; get into the Wimp_Poll loop.
 
 PostFilterPasteReplaceInsert
 	LDRB	R2,[R4],#1			; R4 points to the clipboard contents in RMA, so start
 	CMP	R2,#0				; to insert the text into the keyboard buffer until a
-	LDMEQFD R13!,{R0-R4,PC}			; zero byte is found.
+	POPEQ 	{R0-R4,PC}			; zero byte is found.
 
 	TST	R2,#&80				; If the top bit is set, prefix with a zero byte.
 	BEQ	PostFilterPasteReplaceInsertSkip
@@ -995,7 +995,7 @@ PostFilterPasteReplaceInsert
 
 PostFilterPasteReplaceInsertSkip
 	SWI	XOS_Byte			; Insert the string into the kayboard buffer.
-	LDMCSFD	R13!,{R0-R4,PC}
+	POPCS	{R0-R4,PC}
 	B	PostFilterPasteReplaceInsert
 
 ; ==========================================================================================================================================
@@ -1055,16 +1055,16 @@ InsertDateFormatVar
 ; Release the module area space used by the clipboard contents.
 
 FreeClipboardContents
-	STMFD	R13!,{R0-R2,R14}		; Check that we currently have something on the clipboard.
+	PUSH	{R0-R2,LR}			; Check that we currently have something on the clipboard.
 	LDR	R2,[R12,#WS_ContentPtr]
 	CMP	R2,#0
-	LDMEQFD	R13!,{R0-R2,PC}
+	POPEQ	{R0-R2,PC}
 
 	MOV	R0,#7				; If we have clipboard contents in the RMA, free that contents.
 	SWI	XOS_Module
 	MOV	R0,#0
 	STR	R0,[R12,#WS_ContentPtr]
-	LDMFD	R13!,{R0-R2,PC}
+	POP	{R0-R2,PC}
 
 ; ==========================================================================================================================================
 ; Keep a file extension, and delete the rest.
@@ -1076,7 +1076,7 @@ PostFilterKeepExt
 
 PostFilterKeepExtLoop				; Search through the string, looking for '/' to show where
 	CMP	R4,R3   			; the file extension begins.
-	LDMGEFD	R13!,{R0-R4,PC}
+	POPGE	{R0-R4,PC}
 
 	LDRB	R0,[R4,#1]!
 	CMP	R0,#&2F				; '/'
@@ -1105,11 +1105,11 @@ DeleteToStartOfTextExit
 	SWI	XWimp_SetIconState
 	SWI	XWimp_GetCaretPosition
 	LDMIA	R1,{R0-R4}
-	STMFD	R13!,{R5}
+	PUSH	{R5}
 	MOV	R5,#0
 	SWI	XWimp_SetCaretPosition
-	LDMFD	R13!,{R5}
-	LDMFD	R13!,{R0-R4,PC}
+	POP	{R5}
+	POP	{R0-R4,PC}
 
 ; ==========================================================================================================================================
 ; Delete the text from the caret to the start of the icon.
@@ -1122,7 +1122,7 @@ PostFilterDeleteBack
 	LDR	R4,[R1,#20]
 	ADD	R4,R4,R2
 	CMP	R4,R2				; Check that the index isn't negative (-1 is no caret).
-	LDMLEFD R13!,{R0-R4,PC}
+	POPLE {R0-R4,PC}
 
 	B	DeleteToStartOfText
 
@@ -1137,7 +1137,7 @@ PostFilterSwapCase
 	LDR	R4,[R1,#20]
 	ADD	R4,R4,R2
 	CMP	R4,R3				; Check that we're not at the end of the text.
-	LDMGEFD	R13!,{R0-R4,PC}
+	POPGE	{R0-R4,PC}
 
 	LDRB	R1,[R4]				; Load the character after the caret into R1
 
@@ -1163,13 +1163,13 @@ PostFilterSwapCase
 	SWI	XWimp_GetCaretPosition
 	LDR	R4,[R1,#20]
 	LDMIA	R1,{R0-R1}
-	STMFD	R13!,{R5}
+	PUSH	{R5}
 	ADD	R5,R4,#1
 	MVN	R4,#0
 	SWI	XWimp_SetCaretPosition
-	LDMFD	R13!,{R5}
+	POP	{R5}
 
-	LDMFD	R13!,{R0-R4,PC}
+	POP	{R0-R4,PC}
 
 ; ==========================================================================================================================================
 ; Remove the extension and fix the remaining text's case.
@@ -1237,11 +1237,11 @@ PostFilterRefreshIcon
 	SWI	XWimp_SetIconState
 	SWI	XWimp_GetCaretPosition
 	LDMIA	R1,{R0-R4}
-	STMFD	R13!,{R5}
+	PUSH	{R5}
 	MVN	R5,#0
 	SWI	XWimp_SetCaretPosition
-	LDMFD	R13!,{R5}
-	LDMFD	R13!,{R0-R4,PC}
+	POP	{R5}
+	POP	{R0-R4,PC}
 
 ; ==========================================================================================================================================
 ; Command IcnClipBrdKeys
@@ -1458,7 +1458,18 @@ SetText_ErrKeyCode
 
 CommandKeys_Show
 	SWI	XOS_WriteS
-	DCB	"The keys being intercepted are:",0
+	DCB	"The keys configured for interception are:",0
+	ALIGN
+	SWI	XOS_NewLine
+	SWI	XOS_NewLine
+
+	SWI	XOS_WriteS
+	DCB	"Action                   Key",0
+	ALIGN
+	SWI	XOS_NewLine
+
+	SWI	XOS_WriteS
+	DCB	"------                   ---",0
 	ALIGN
 	SWI	XOS_NewLine
 
@@ -1466,7 +1477,7 @@ CommandKeys_Show
 	LDRB	R2,[R12,#WS_KeyCopy]
 	BL	CommandKeys_Show_Write
 
-	ADRL	R1,ShowText_Cut
+	ADR	R1,ShowText_Cut
 	LDRB	R2,[R12,#WS_KeyCut]
 	BL	CommandKeys_Show_Write
 
@@ -1474,7 +1485,7 @@ CommandKeys_Show
 	LDRB	R2,[R12,#WS_KeyPaste]
 	BL	CommandKeys_Show_Write
 
-	ADRL	R1,ShowText_PasteDel
+	ADR	R1,ShowText_PasteDel
 	LDRB	R2,[R12,#WS_KeyPasteDel]
 	BL	CommandKeys_Show_Write
 
@@ -1498,18 +1509,18 @@ CommandKeys_Show
 	LDRB	R2,[R12,#WS_KeyDateTime]
 	BL	CommandKeys_Show_Write
 
-	ADRL	R1,ShowText_QuoteReq
+	ADR	R1,ShowText_QuoteReq
 	LDRB	R2,[R12,#WS_KeyQuoteReq]
 	BL	CommandKeys_Show_Write
 
-	LDMFD	R13!,{PC}
+	POP	{PC}
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------
 ; Write a key configuration.
 ; On entry: R1 => Key Text, R2 == Key Code
 
 CommandKeys_Show_Write
-	STMFD	R13!,{R14}
+	PUSH	{LR}
 	MOV	R3,#25					; Column width of 25 characters
 
 CommandKeys_Show_WriteName
@@ -1554,7 +1565,7 @@ CommandKeys_Show_WriteNameCtrl
 
 CommandKeys_Show_WriteDone
 	SWI	XOS_NewLine				; Newline.
-	LDMFD	R13!,{PC}
+	POP	{PC}
 
 ; The key configuration texts.
 
@@ -1592,7 +1603,7 @@ ShowText_QuoteReq
 
 CommandCode_Desktop
 	LDR	R12,[R12]
-	STMFD	R13!,{R14}
+	PUSH	{LR}
 	LDR	R0,[R12,#WS_TaskHandle]
 	CMP	R0,#0
 	BLE	CommandDesktopOK
@@ -1601,10 +1612,10 @@ CommandDesktopError
 	ADR	R0,ErrorBlock
 	TEQ	R0,R0
 	TEQ	PC,PC
-	LDMNEFD	R13!,{R14}
+	POPNE	{LR}
 	ORRNES	PC,R14,#PSR_Negative :OR: PSR_Overflow
 	MSR	CPSR_f, #PSR_Negative :OR: PSR_Overflow
-	LDMFD	R13!,{PC}
+	POP	{PC}
 
 	; Pass *Desktop_IcnClipBrd to OS_Module.
 
@@ -1613,14 +1624,14 @@ CommandDesktopOK
 	ADR	R1,TitleString
 	MOV	R2,#0
 	SWI	XOS_Module
-	LDMFD	R13!,{PC}
+	POP	{PC}
 
 ; ==========================================================================================================================================
 ; Service Call Handler
 
 ServiceCallHandler
 	LDR	R12,[R12]
-	STMFD	R13!,{R14}
+	PUSH	{LR}
 
 ;	TEQ	R1,#Service_TerritoryStarted
 ;	BEQ	ServiceCall_TerritoryStarted
@@ -1633,13 +1644,13 @@ ServiceCallHandler
 	STREQ	R14,[R12,#WS_TaskHandle]
 
 	TEQ	R1,#Service_StartedWimp
-	LDMNEFD	R13!,{PC}
+	POPNE	{PC}
 
 	LDR	R14,[R12,#WS_TaskHandle]
 	CMN	R14,#1
 	MOVEQ	R14,#0
 	STREQ	R14,[R12,#WS_TaskHandle]
-	LDMFD	R13!,{PC}
+	POP	{PC}
 
 ServiceCall_StartWimp
 	LDR	R14,[R12,#WS_TaskHandle]
@@ -1648,7 +1659,7 @@ ServiceCall_StartWimp
 	STREQ	R14,[R12,#WS_TaskHandle]
 	ADREQL	R0,CommandTable
 	MOVEQ	R1,#0
-	LDMFD	R13!,{PC}
+	POP	{PC}
 
 ServiceCall_TerritoryStarted
 ;	MOV	R0,#-1				; Initialise the case conversion tables.
@@ -1658,7 +1669,7 @@ ServiceCall_TerritoryStarted
 ;	MOV	R0,#-1
 ;	SWI	XTerritory_UpperCaseTable
 ;	STR	R0,[R12,#WC_UCTable]
-;	LDMFD	R13!,{PC}
+;	POP	{PC}
 
 
 ; ==========================================================================================================================================
