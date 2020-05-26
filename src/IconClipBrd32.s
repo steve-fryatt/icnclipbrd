@@ -40,12 +40,11 @@ Ctrl_C					EQU &43
 Ctrl_V					EQU &56
 Ctrl_X					EQU &58
 
-; Stack Size
+; ------------------------------------------------------------------------------------------------------------------------------------------
+; Set Up the Module Workspace
 
-StackSize				EQU &130
-
-
-; Workspace usage
+WS_BlockSize				*	256
+WS_TargetSize				*	&600
 
 					^	0
 WS_TaskHandle				#	4
@@ -56,11 +55,10 @@ WS_ContentLen				#	4
 WS_BytesSent				#	4
 WS_FlagWord				#	4
 WS_OtherTask				#	4
-WS_PollBlock				#	StackSize
 WS_UCTable				#	4
 WS_LCTable				#	4
 WS_CPTable				#	4
-WS_UPTable				#	8	; Old code allocated 8 bytes here?!
+WS_UPTable				#	4
 WS_KeyCopy				#	1
 WS_KeyCut				#	1
 WS_KeyPaste				#	1
@@ -73,9 +71,11 @@ WS_KeyDateTime				#	1
 WS_KeyQuoteReq				#	1
 WS_KeyUnused				#	1
 WS_KeyTerminator			#	1
+WS_PollBlock				#	WS_BlockSize
+WS_Stack				#	WS_TargetSize - @
 WS_Size					*	@
 
-
+; ------------------------------------------------------------------------------------------------------------------------------------------
 ; Flag bits
 
 F_Quote					EQU &000001
@@ -157,8 +157,7 @@ CommandTable
 
 StartCode
 	LDR	R12,[R12]			; Initialise the workspace and stack.
-	LDR	R13,[R12,#WS_PollBlockPtr]	; The stack resides in the top of the
-	ADD	R13,R13,#StackSize		; Wimp_Poll block.
+	ADD	R13,R12,#WS_Stack
 
 	LDR	R0,[R12,#WS_TaskHandle]		; Test the stored task handle to see if a task is
 	CMP	R0,#0				; already running.
