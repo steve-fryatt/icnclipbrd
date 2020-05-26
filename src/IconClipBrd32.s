@@ -1274,67 +1274,128 @@ CommandKeys_Show
 	ALIGN
 	SWI	XOS_NewLine
 
-	LDR	R6,[R12,#WS_FlagWord]
+	ADRL	R1,ShowText_Copy
+	LDRB	R2,[R12,#WS_KeyCopy]
+	BL	CommandKeys_Show_Write
 
-	ADR	R0,CtrlText
-	MOV	R1,#5
+	ADRL	R1,ShowText_Cut
+	LDRB	R2,[R12,#WS_KeyCut]
+	BL	CommandKeys_Show_Write
 
-	TST	R6,#F_Copy
-	SWINE	XOS_WriteN
-	SWINE	OS_WriteI+67
-	SWINE	OS_WriteI+32
+	ADRL	R1,ShowText_Paste
+	LDRB	R2,[R12,#WS_KeyPaste]
+	BL	CommandKeys_Show_Write
 
-	TST	R6,#F_DeDosify
-	SWINE	XOS_WriteN
-	SWINE	OS_WriteI+68
-	SWINE	OS_WriteI+32
+	ADRL	R1,ShowText_PasteDel
+	LDRB	R2,[R12,#WS_KeyPasteDel]
+	BL	CommandKeys_Show_Write
 
-	TST	R6,#F_Extension
-	SWINE	XOS_WriteN
-	SWINE	OS_WriteI+69
-	SWINE	OS_WriteI+32
+	ADRL	R1,ShowText_DeDosify
+	LDRB	R2,[R12,#WS_KeyDeDosify]
+	BL	CommandKeys_Show_Write
 
-	TST	R6,#F_DeleteLeft
-	SWINE	XOS_WriteN
-	SWINE	OS_WriteI+75
-	SWINE	OS_WriteI+32
+	ADRL	R1,ShowText_Extension
+	LDRB	R2,[R12,#WS_KeyExtension]
+	BL	CommandKeys_Show_Write
 
-	TST	R6,#F_QuoteReq
-	SWINE	XOS_WriteN
-	SWINE	OS_WriteI+81
-	SWINE	OS_WriteI+32
+	ADRL	R1,ShowText_DeleteLeft
+	LDRB	R2,[R12,#WS_KeyDeleteLeft]
+	BL	CommandKeys_Show_Write
 
-	TST	R6,#F_SwapCase
-	SWINE	XOS_WriteN
-	SWINE	OS_WriteI+83
-	SWINE	OS_WriteI+32
+	ADRL	R1,ShowText_SwapCase
+	LDRB	R2,[R12,#WS_KeySwapCase]
+	BL	CommandKeys_Show_Write
 
-	TST	R6,#F_DateTime
-	SWINE	XOS_WriteN
-	SWINE	OS_WriteI+84
-	SWINE	OS_WriteI+32
+	ADRL	R1,ShowText_DateTime
+	LDRB	R2,[R12,#WS_KeyDateTime]
+	BL	CommandKeys_Show_Write
 
-	TST	R6,#F_Paste
-	SWINE	XOS_WriteN
-	SWINE	OS_WriteI+86
-	SWINE	OS_WriteI+32
-
-	TST	R6,#F_Cut
-	SWINE	XOS_WriteN
-	SWINE	OS_WriteI+88
-	SWINE	OS_WriteI+32
-
-	TST	R6,#F_PasteDel
-	SWINE	XOS_WriteN
-	SWINE	OS_WriteI+90
-	SWINE	OS_WriteI+32
-
-	SWI	XOS_NewLine
+	ADRL	R1,ShowText_QuoteReq
+	LDRB	R2,[R12,#WS_KeyQuoteReq]
+	BL	CommandKeys_Show_Write
 
 	LDMFD	R13!,{PC}
 
-CtrlText
+; ------------------------------------------------------------------------------------------------------------------------------------------
+; Write a key configuration.
+; On entry: R1 => Key Text, R2 == Key Code
+
+CommandKeys_Show_Write
+	STMFD	R13!,{R14}
+	MOV	R3,#25					; Column width of 25 characters
+
+CommandKeys_Show_WriteName
+	LDRB	R0,[R1],#1				; Loop through the key text, until 0 is found.
+	CMP	R0,#0
+	BEQ	CommandKeys_Show_WriteNamePad
+
+	SWI	XOS_WriteC				; Write the next key text character.
+	SUB	R3,R3,#1
+	B	CommandKeys_Show_WriteName
+
+CommandKeys_Show_WriteNamePad
+	CMP	R3,#0					; Pad the key text until R3 is 0.
+	BLE	CommandKeys_Show_WriteNameOff
+
+	SWI	XOS_WriteI + 32				; Write a padding space.
+	SUB	R3,R3,#1
+	B	CommandKeys_Show_WriteNamePad
+
+CommandKeys_Show_WriteNameOff
+	CMP	R2,#0					; If the key is 0, write OFF.
+	BGT	CommandKeys_Show_WriteNameError
+
+	ADR	R0,ShowText_Off
+	SWI	XOS_Write0
+	B	CommandKeys_Show_WriteDone
+
+CommandKeys_Show_WriteNameError
+	CMP	R2,#26					; If the key is > Ctrl-Z, write ERROR.
+	BLE	CommandKeys_Show_WriteNameCtrl
+
+	ADR	R0,ShowText_Error
+	SWI	XOS_Write0
+	B	CommandKeys_Show_WriteDone
+
+CommandKeys_Show_WriteNameCtrl
+	ADR	R0,ShowText_Ctrl			; If key is Ctrl-A to Ctrl-Z, write Ctrl-?.
+	SWI	XOS_Write0
+
+	ADD	R0,R2,#64
+	SWI	XOS_WriteC
+
+CommandKeys_Show_WriteDone
+	SWI	XOS_NewLine				; Newline.
+	LDMFD	R13!,{PC}
+
+
+ShowText_Ctrl
 	DCB	"Ctrl-",0
+ShowText_Off
+	DCB	"Off",0
+ShowText_Error
+	DCB	"Error",0
+ShowText_Cut
+	DCB	"Cut to Clipboard",0
+ShowText_Copy
+	DCB	"Copy to Clipboard",0
+ShowText_Paste
+	DCB	"Paste from Clipboard",0
+ShowText_PasteDel
+	DCB	"Overwrite from Clipboard",0
+ShowText_DeDosify
+	DCB	"Remove DOS Extension",0
+ShowText_Extension
+	DCB	"Remove DOS Filename",0
+ShowText_DeleteLeft
+	DCB	"Delete to Left",0
+ShowText_SwapCase
+	DCB	"Swap Case",0
+ShowText_DateTime
+	DCB	"Insert Date and Time",0
+ShowText_QuoteReq
+	DCB	"Quote Following Key",0
+
 	ALIGN
 
 ; ==========================================================================================================================================
