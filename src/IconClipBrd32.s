@@ -100,6 +100,11 @@ F_KeyMask				EQU &0FFF00
 WS_RAMBlockOffset			EQU &80
 WS_RAMBlockSize				EQU &80
 
+; Processor Flags
+
+PSR_Overflow				EQU &10000000
+PSR_Negative				EQU &80000000
+
 ; ==========================================================================================================================================
 
 	AREA	Module,CODE
@@ -141,7 +146,7 @@ CommandTable
 	DCB	"IcnClipBrdKeys",0
 	ALIGN
 	DCD	CommandCode_Keys
-	DCD	&00010000
+	DCD	&00140000
 	DCD	CommandKeysSyntax
 	DCD	CommandKeysHelp
 
@@ -1244,29 +1249,209 @@ PostFilterRefreshIcon
 
 CommandCode_Keys
 	LDR	R12,[R12]
-	STMFD	R13!,{R14}
+	PUSH	{LR}
 
-	TEQ	R1,#0				; If parameters=0, print the keys in use; if =1, set the keys
+	TEQ	R1,#0				; If parameters=0, print the keys in use; if >=1, set the keys
 	BEQ	CommandKeys_Show
 
 CommandKeys_Set
-	MOV	R1,R0				; Convert the parameter into a number.
-	MOV	R0,#10
-	ORR	R0,R0,#&80000000
-	SWI	XOS_ReadUnsigned
-	LDMVSFD	R13!,{PC}
+	SUB	R13,R13,#128
 
-	MOV	R1,#&00FF
-	ORR	R1,R1,#&0300
+	MOV     R1,R0
+	ADR     R0,CommandKeys_Keywords
+	MOV     R2,R13
+	MOV     R3,#128
+	SWI     XOS_ReadArgs
+	BVS     CommandKeys_SetExit
 
-	AND	R2,R2,R1			; Mask the number down to a single byte plus 1, to be safe.
+CommandKeys_SetCut
+	LDR	R0,[R2,#0]
+	CMP	R0,#0
+	BEQ	CommandKeys_SetCopy
 
-	LDR	R0,[R12,#WS_FlagWord]		; Take the number and replace the 2nd byte plus 1 of the flags with it.
-	BIC	R0,R0,R1,ASL #8
-	ORR	R0,R0,R2,ASL #8
-	STR	R0,[R12,#WS_FlagWord]
+	BL	CommandKeys_Match
+	BVS     CommandKeys_SetExit
+	STRB	R0,[R12,#WS_KeyCut]
 
-	LDMFD	R13!,{PC}
+CommandKeys_SetCopy
+	LDR	R0,[R2,#4]
+	CMP	R0,#0
+	BEQ	CommandKeys_SetPaste
+
+	BL	CommandKeys_Match
+	BVS     CommandKeys_SetExit
+	STRB	R0,[R12,#WS_KeyCopy]
+
+CommandKeys_SetPaste
+	LDR	R0,[R2,#8]
+	CMP	R0,#0
+	BEQ	CommandKeys_SetOverwrite
+
+	BL	CommandKeys_Match
+	BVS     CommandKeys_SetExit
+	STRB	R0,[R12,#WS_KeyPasteDel]
+
+CommandKeys_SetOverwrite
+	LDR	R0,[R2,#12]
+	CMP	R0,#0
+	BEQ	CommandKeys_SetExtension
+
+	BL	CommandKeys_Match
+	BVS     CommandKeys_SetExit
+	STRB	R0,[R12,#WS_KeyExtension]
+
+CommandKeys_SetExtension
+	LDR	R0,[R2,#16]
+	CMP	R0,#0
+	BEQ	CommandKeys_SetFilename
+
+	BL	CommandKeys_Match
+	BVS     CommandKeys_SetExit
+	STRB	R0,[R12,#WS_KeyDeDosify]
+
+CommandKeys_SetFilename
+	LDR	R0,[R2,#20]
+	CMP	R0,#0
+	BEQ	CommandKeys_SetDelLeft
+
+	BL	CommandKeys_Match
+	BVS     CommandKeys_SetExit
+	STRB	R0,[R12,#WS_KeyExtension]
+
+CommandKeys_SetDelLeft
+	LDR	R0,[R2,#24]
+	CMP	R0,#0
+	BEQ	CommandKeys_SetSwapCase
+
+	BL	CommandKeys_Match
+	BVS     CommandKeys_SetExit
+	STRB	R0,[R12,#WS_KeyDeleteLeft]
+
+CommandKeys_SetSwapCase
+	LDR	R0,[R2,#28]
+	CMP	R0,#0
+	BEQ	CommandKeys_SetDateTime
+
+	BL	CommandKeys_Match
+	BVS     CommandKeys_SetExit
+	STRB	R0,[R12,#WS_KeySwapCase]
+
+CommandKeys_SetDateTime
+	LDR	R0,[R2,#32]
+	CMP	R0,#0
+	BEQ	CommandKeys_SetQuoteReq
+
+	BL	CommandKeys_Match
+	BVS     CommandKeys_SetExit
+	STRB	R0,[R12,#WS_KeyDateTime]
+
+CommandKeys_SetQuoteReq
+	LDR	R0,[R2,#36]
+	CMP	R0,#0
+	BEQ	CommandKeys_SetExit
+
+	BL	CommandKeys_Match
+	BVS     CommandKeys_SetExit
+	STRB	R0,[R12,#WS_KeyQuoteReq]
+
+CommandKeys_SetExit
+	ADD	R13,R13,#128
+	POP	{PC}
+
+; ------------------------------------------------------------------------------------------------------------------------------------------
+; Parse a value and return the resulting key code.
+; On entry, R0 => Text. On Exit; R0 == new key code, or VS on error.
+
+CommandKeys_Match
+	PUSH	{R1-R5,LR}
+
+	LDR	R5,[R12,#WS_UCTable]
+
+CommandKeys_MatchTestOff
+	MOV	R1,R0					; Check to see if this is "OFF"
+	ADR	R2,SetText_Off
+	BL	CommandKeys_MatchTestLoop
+
+	CMP	R3,#0					; If both match exactly, this was "Off"
+	CMPEQ	R4,#0
+	MOVEQ	R0,#0					; Return zero, to unset the key.
+	BEQ	CommandKeys_MatchExit
+
+CommandKeys_MatchTextCtrl
+	MOV	R1,R0					; Check to see if this is "CTRL-"
+	ADR	R2,SetText_Ctrl
+	BL	CommandKeys_MatchTestLoop
+
+	CMP	R4,#0					; We didn't get the full "CTRL-"
+	ADR	R0,SetText_ErrKeyCode
+	BNE	CommandKeys_MatchExitVS
+
+	CMP	R3,#0					; We just got "CTRL-" and nothing else.
+	ADR	R0,SetText_ErrKeyCode
+	BEQ	CommandKeys_MatchExitVS
+
+	LDRB	R4,[R1]					; Load the next character from the user
+	CMP	R4,#0					; string... it should be NULL if they
+	ADR	R0,SetText_ErrKeyCode			; entered Ctrl-X.
+	BNE	CommandKeys_MatchExitVS
+
+	CMP	R3,#"A"					; Is the character < "A"
+	ADR	R0,SetText_ErrKeyRange
+	BLT	CommandKeys_MatchExitVS
+
+	CMP	R3,#"Z"					; Is the character > "Z"
+	ADR	R0,SetText_ErrKeyRange
+	BGT	CommandKeys_MatchExitVS
+
+	SUB	R0,R3,#"A" - 1
+
+CommandKeys_MatchExit
+	POP	{R1-R5,PC}
+
+CommandKeys_MatchExitVS
+	POP	{R1-R5,LR}
+
+	TEQ	PC,PC
+	ORRNES	PC,LR,#PSR_Overflow
+	MSR	CPSR_f,#PSR_Overflow
+	MOV	PC,LR
+
+; ------------------------------------------------------------------------------------------------------------------------------------------
+; Compare two strings, canse insensitively.
+; On entry: R1 => String to be matched, R2 => UC String to match against.
+; On exit: R3 == Last char from R1, R4 == Last char from R2
+
+CommandKeys_MatchTestLoop
+	LDRB	R3,[R1],#1				; Load the next character from the user...
+	LDRB	R3,[R5,R3]				; ... and convert to UC.
+	LDRB	R4,[R2],#1				; Load the next character of the match
+
+	CMP	R4,#0					; Exit if the match is zero.
+	MOVEQ	PC,LR
+
+	CMP	R3,R4					; Keep going if they match.
+	BEQ	CommandKeys_MatchTestLoop
+
+	MOV	PC,LR
+
+; ------------------------------------------------------------------------------------------------------------------------------------------
+
+CommandKeys_Keywords
+	DCB	"cut/K,copy/K,paste/K,overwrite/K,extension/K,filename/K,delleft/K,swapcase/K,datetime/K,quote/K",0
+SetText_Off
+	DCB	"OFF",0
+SetText_Ctrl
+	DCB	"CTRL-",0
+
+SetText_ErrKeyRange
+	DCB	"Invalid Ctrl key.",0
+SetText_ErrKeyCode
+	DCB	"Unable to match key name.",0
+
+	ALIGN
+
+; ------------------------------------------------------------------------------------------------------------------------------------------
+; Show the current configurations.
 
 CommandKeys_Show
 	SWI	XOS_WriteS
@@ -1368,6 +1553,7 @@ CommandKeys_Show_WriteDone
 	SWI	XOS_NewLine				; Newline.
 	LDMFD	R13!,{PC}
 
+; The key configuration texts.
 
 ShowText_Ctrl
 	DCB	"Ctrl-",0
@@ -1413,8 +1599,8 @@ CommandDesktopError
 	TEQ	R0,R0
 	TEQ	PC,PC
 	LDMNEFD	R13!,{R14}
-	ORRNES	PC,R14,#9 << 28
-	MSR	CPSR_f, #9 << 28
+	ORRNES	PC,R14,#PSR_Negative :OR: PSR_Overflow
+	MSR	CPSR_f, #PSR_Negative :OR: PSR_Overflow
 	LDMFD	R13!,{PC}
 
 	; Pass *Desktop_IcnClipBrd to OS_Module.
