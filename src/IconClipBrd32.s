@@ -1442,12 +1442,16 @@ SetText_Off
 	DCB	"OFF",0
 SetText_Ctrl
 	DCB	"CTRL-",0
+	ALIGN
 
 SetText_ErrKeyRange
+	DCD	0
 	DCB	"Invalid Ctrl key.",0
-SetText_ErrKeyCode
-	DCB	"Unable to match key name.",0
+	ALIGN
 
+SetText_ErrKeyCode
+	DCD	0
+	DCB	"Unable to match key name.",0
 	ALIGN
 
 ; ------------------------------------------------------------------------------------------------------------------------------------------
