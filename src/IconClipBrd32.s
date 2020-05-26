@@ -703,8 +703,8 @@ InitialisationKeys
 	DCB	4	; DeDOSify		Ctrl-D
 	DCB	5	; Extension		Ctrl-E
 	DCB	11	; Delete Left		Ctrl-K
-	DCB	19	; Swap Case		Ctrl-S
-	DCB	20	; Date Time		Ctrl-T
+	DCB	0	; Swap Case		Ctrl-S
+	DCB	0	; Date Time		Ctrl-T
 	DCB	17	; Quote			Ctrl-Q
 	DCB	0	; Unused
 	DCB	255	; List Terminator
