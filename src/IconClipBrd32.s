@@ -952,9 +952,8 @@ PostFilterCutCopyLoopExit
 	MOV	R0,#0				; Terminate the copied clipboard text.
 	STRB	R0,[R2,#0]
 
-	LDR	R1,[R13,#4]			; Check the keypress.  If it was Ctrl-C, exit.
-	LDR	R0,[R1,#&018]
-	TEQ	R0,#&18				; Ctrl-X
+	LDR	R0,[R12,#WS_FlagWord]		; Check the keypress.  If it was Ctrl-C, exit.
+	TST	R0,#F_Copy
 	POPNE	{R0-R4,PC}
 
 	MOV	R0,#&0D				; If the keypress was Ctrl-X, clear the icon contents
@@ -965,14 +964,14 @@ PostFilterCutCopyLoopExit
 ; Insert the clipboard contents at the caret, using OS_Byte &8A.  If Ctrl-Z was used, prefix the
 ; text with a Ctrl-U to clear the icon.
 ;
-; On entry R14=Keypress.
+; On entry R0=Flagword
 
 PostFilterPasteReplace
-	CMP	R14,#&1A			; If the keypress was Ctrl-Z, we insert a Ctrl-U into
-	MOV	R0,#&8A				; the keyboard buffer to wipe the old text.
+	TST	R0,#F_PasteDel			; If the keypress was Ctrl-Z, we insert a Ctrl-U into
+	MOV	R0,#&8A				
 	MOV	R1,#0
-	MOVEQ	R2,#&15
-	SWIEQ	XOS_Byte
+	MOVNE	R2,#&15
+	SWINE	XOS_Byte
 
 	LDR	R4,[R12,#WS_ContentPtr]		; Check if we own the clipboard.  If we do, we can
 	CMP	R4,#0				; just insert the text from the RMA.  If we don't...
