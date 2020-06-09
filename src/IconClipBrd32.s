@@ -1409,6 +1409,7 @@ CommandKeys_MatchExit
 CommandKeys_MatchExitVS
 	POP	{R1-R5,LR}
 
+	TEQ	PC,#0
 	TEQ	PC,PC
 	ORRNES	PC,LR,#PSR_Overflow
 	MSR	CPSR_f,#PSR_Overflow
