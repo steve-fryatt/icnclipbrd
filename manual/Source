@@ -109,7 +109,7 @@ Alternatively, the command can take one or more parameters to change the shortcu
 <li><command>-Cut</command> sets the key for cutting an icon&rsquo;s contents to the clipboard (which is <key>Ctrl-X</key> by default).
 <li><command>-Copy</command> sets the key for copying an icon&rsquo;s contents to the clipboard (which is <key>Ctrl-C</key> by default).
 <li><command>-Paste</command> sets the key for pasting the clipboard into an icon at the caret (which is <key>Ctrl-V</key> by default).
-<li><command>-Qverwrite</command> sets the key for overwriting an icon&rsquo;s contents with the contents of the clipboard (which is <key>Ctrl-Z</key> by default).
+<li><command>-Overwrite</command> sets the key for overwriting an icon&rsquo;s contents with the contents of the clipboard (which is <key>Ctrl-Z</key> by default).
 <li><command>-Extension</command> sets the key for removing a DOS extension from a filename (which is <key>Ctrl-D</key> by default).
 <li><command>-Filename</command> sets the key for removing the filename to leave a DOS extension (which is <key>Ctrl-E</key> by default).
 <li><command>-DelLeft</command> sets the key for deleting from the caret to the left of the text (which is <key>Ctrl-K</key> by default).
