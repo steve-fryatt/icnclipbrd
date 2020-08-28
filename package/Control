@@ -1,0 +1,25 @@
+Package: IcnClpBrd
+Version: 0.17-1
+Section: Desktop
+Priority: Optional
+Maintainer: Stephen Fryatt <info@stevefryatt.org.uk>
+Standards-Version: 0.6.0
+Environment: arm
+Licence: Free
+Description: IcnClipBrd brings the global clipboard to writable icons on the desktop
+ The IcnClipBrd module enables the use of the global clipboard in writable
+ icons on the desktop using the conventional Ctrl-C, Ctrl-X and Ctrl-V
+ keypresses along with Ctrl-Z to replace the icon contents with the text on
+ the clipboard.
+ .
+ In addition, Ctrl-K deletes everything to the left of the caret
+ (complementing the exiting Ctrl-End to delete to the right of the caret).
+ Ctrl-E can be used to keep just a DOS file extension (eg. "NOTES/TXT" would
+ become "/TXT"), while Ctrl-D de-DOSifies a filename (eg. "NOTES/TXT" would
+ become "Notes").
+ .
+ Finally, Ctrl-S swaps the case of the character at the caret in a writable
+ icon, and Ctrl-T inserts the current date and/or time in a user-configurable
+ format.
+Homepage: http://www.stevefryatt.org.uk/software/clipboard/
+Components: Apps.Desktop.!IcnClpBrd (Movable)

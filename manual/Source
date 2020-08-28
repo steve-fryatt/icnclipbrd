@@ -10,7 +10,7 @@
 =============================================================================
 IcnClipBrd - Global Clipboard in writable icons                  Version $$version$$
 
-(c) Thomas Leonard, 1999-2004, Stephen Fryatt, 2004-2014 $$date$$
+(c) Thomas Leonard, 1999-2004, Stephen Fryatt, 2004-2020 $$date$$
 =============================================================================
 </literal>
 
@@ -60,7 +60,7 @@ If you have a copy of the <cite>DeepKeys</cite> module installed on your system 
 
 <chapter title="Using the module" file="Use">
 
-To use <cite>IcnClipBrd</cite> the caret must be in a writable icon. The following keys will now work:
+To use <cite>IcnClipBrd</cite> the caret must be in a writable icon. The following keys will now work by default, although they can all have their shortcut changed or be disabled completely:
 
 <list>
 <li><key>Ctrl-V</key> pastes the global clipboard into the icon.
@@ -85,9 +85,9 @@ You can clear the icon without putting the contents on the clipboard by using <k
 In addition to the above, two further keypresses are disabled by default but can be configured into use:
 
 <list>
-<li><key>Ctrl-S</key> swaps the case of the character in front of the caret.
+<li>Swap the case of the character in front of the caret.
 
-<li><key>Ctrl-T</key> inserts the date and/or time into the icon.
+<li>Inserts the date and/or time into the icon.
 </list>
 
 By default, dates are in the format DD Mmm YYYY, but other formats (including current time) can be defined using the Alarm format field names by setting them into the &lt;IcnClipBrd$DateFormat&gt; system variable. If an error is encountered when using the contents of the variable, its contents is pasted into the icon instead of a date.
@@ -101,13 +101,30 @@ By default, <cite>IcnClipBrd</cite> will intercept all of the keypresses listed 
 
 The command <command>*IcnClipBrdKeys</command> is used to change the keys that the module intercepts, or to display the current configuration.
 
-The &lt;new keys&gt; parameter is a 10-bit binary number, constructed as 2_TSZXVQKEDC for the ten Ctrl keys. Thus, enabling only the keys <key>Ctrl-C</key>, <key>Ctrl-Q</key>, <key>Ctrl-V</key>, <key>Ctrl-X</key> and <key>Ctrl-Z</key> would require the parameter <command>2_0011110001</command> (or <command>&F1</command>, or <command>241</command>).
-
 Without a parameter, the command prints a list of the keys currently being intercepted.
+
+Alternatively, the command can take one or more parameters to change the shortcut keys in use as well as enable or disable actions completely. The parameters are
+
+<list spacing=1>
+<li><command>-Cut</command> sets the key for cutting an icon&rsquo;s contents to the clipboard (which is <key>Ctrl-X</key> by default).
+<li><command>-Copy</command> sets the key for copying an icon&rsquo;s contents to the clipboard (which is <key>Ctrl-C</key> by default).
+<li><command>-Paste</command> sets the key for pasting the clipboard into an icon at the caret (which is <key>Ctrl-V</key> by default).
+<li><command>-Overwrite</command> sets the key for overwriting an icon&rsquo;s contents with the contents of the clipboard (which is <key>Ctrl-Z</key> by default).
+<li><command>-Extension</command> sets the key for removing a DOS extension from a filename (which is <key>Ctrl-D</key> by default).
+<li><command>-Filename</command> sets the key for removing the filename to leave a DOS extension (which is <key>Ctrl-E</key> by default).
+<li><command>-DelLeft</command> sets the key for deleting from the caret to the left of the text (which is <key>Ctrl-K</key> by default).
+<li><command>-SwapCase</command> sets the key for swapping the case of the character in front of the caret (which is disabled by default).
+<li><command>-DateTime</command> sets the key for inserting the date and/or time (which is disabled by default).
+<li><command>-Quote</command> sets the key for passing the next keypress on to the taks (which is <key>Ctrl-Q</key> by default).
+</list>
+
+For example, <command>*IcnClipBrdKeys --Cut Ctrl-P</command> would make <key>Ctrl-P</key> cut the text from an icon and place it on the clipboard, while <command>*IcnClipBrdKeys --Overwrite Off</command> would disable the operation to replace an icon&rsquo;s contents with the clipboard.
+
+It is possible to set more than one key shortcut in one command if required.
 
 </comdef>
 
-To adjust the format of the dates inserted by <key>Ctrl-T</key>, the system variable &lt;IcnClipBrd$DateFormat&gt; can be set. The variable takes the &lsquo;Alarm-style&rsquo; date format field names; the default format is DD Mmm YYYY, which would be set as <code>%DY %M3 %CE%YR</code>. If an error is encountered when <cite>IcnClipBrd</cite> tries to parse the string, the string itself will be pasted into the icon at the caret.
+To adjust the format of the dates inserted by the module, the system variable &lt;IcnClipBrd$DateFormat&gt; can be set. The variable takes the &lsquo;Alarm-style&rsquo; date format field names; the default format is DD Mmm YYYY, which would be set as <code>%DY %M3 %CE%YR</code>. If an error is encountered when <cite>IcnClipBrd</cite> tries to parse the string, the string itself will be pasted into the icon at the caret.
 
 The <file>!IcnClpBrd</file> application contains an obey file called <file>Configure</file>, which calls the <command>*IcnClipBrdKeys</command> command and sets the system variable; this allows the keys to be set and the date format configured when the module is loaded. Load the file into a text editor to modify it.
 
@@ -240,6 +257,13 @@ Limited issue for test purposes.
 
 <list>
 <li>Fix error handling for <command>*Desktop_IcnClipBrd</command>.
+</list>
+
+
+<subhead title="Test Build">
+
+<list>
+<li>Change the use of <command>*IcnClipBrdKeys</command> to allow shortcut keys to be changed.
 </list>
 
 </chapter>

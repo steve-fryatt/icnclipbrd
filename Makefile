@@ -1,4 +1,4 @@
-# Copyright 2013-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+# Copyright 2013-2020, Stephen Fryatt (info@stevefryatt.org.uk)
 #
 # This file is part of IcnClipBrd:
 #
@@ -26,8 +26,11 @@
 
 ARCHIVE := icnclipbrd
 
-MODULE := IcnClpBrd,ffa
+MODULE := IcnClipBrd,ffa
 APP = !IcnClpBrd
+
+PACKAGE := IcnClipBrd
+PACKAGELOC := Desktop
 
 OBJS := IconClipBrd32.o
 

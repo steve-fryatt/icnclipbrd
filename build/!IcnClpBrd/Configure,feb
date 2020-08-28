@@ -4,14 +4,23 @@
 
 | Set the options for the module.
 
-| Configure the keys that are intercepted.  The 10 bits in the number
-| correspond to the 10 Ctrl keys: 2_TSZXVQKEDC.  Setting a bit causes
-| IcnClipBrd to intercept that key.
+| Configure the keys that are intercepted. The following parameters
+| can be applied:
 |
-| 2_1111111111 enables all keypresses.  To disable Ctrl-D, Ctrl-E and Ctrl-K,
-| and enable Ctrl-S and Ctrl-T, use 2_1111110001
+|   -Cut  -Copy  -Paste  -Overwrite
+|   -Extension  -Filename
+|   -DelLeft
+|   -SwapCase
+|   -DateTime
+|   -Quote 
+|
+| For example, to disable the clipboard operation on RISC OS 5.27+ or Select
 
-IcnClipBrdKeys 2_0011111111
+| IcnClipBrdKeys -Cut Off -Copy Off -Paste Off -Overwrite Off
+
+| To enable swap case and date/time insert on their old default keys
+
+| IcnClipBrdKeys -SwapCase Ctrl-S -DateTime Ctrl-T
 
 | Configure the format of dates inserted by Ctrl-T (if enabled).  If the line
 | below is commented out, the format DD Mmm YYYY will be used.  Remove the
