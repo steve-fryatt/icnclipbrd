@@ -31,7 +31,7 @@ APP = !IcnClpBrd
 
 ADDITIONS := Upgrade017,fff
 
-PACKAGE := IcnClipBrd
+PACKAGE := IcnClpBrd
 PACKAGELOC := Desktop
 
 OBJS := IconClipBrd32.o
