@@ -274,7 +274,7 @@ Limited issue for test purposes.
 </list>
 
 
-<subhead title="Test Build">
+<subhead title="0.20 (29 August 2020)">
 
 <list>
 <li>Change the use of <command>*IcnClipBrdKeys</command> to allow shortcut keys to be changed.
