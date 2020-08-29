@@ -29,6 +29,8 @@ ARCHIVE := icnclipbrd
 MODULE := IcnClipBrd,ffa
 APP = !IcnClpBrd
 
+ADDITIONS := Upgrade017,fff
+
 PACKAGE := IcnClipBrd
 PACKAGELOC := Desktop
 

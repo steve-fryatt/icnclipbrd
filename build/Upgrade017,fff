@@ -1,0 +1,172 @@
+=============================================================================
+IcnClipBrd - Global Clipboard in writable icons
+
+Important Upgrade Information for users of version 0.17        29 August 2020
+=============================================================================
+
+
+  IcnClipBrd 0.20 changes the way in which its keypresses are configured.
+  Users upgrading from version 0.17 or earlier should read this release note
+  before starting to upgrade their copy to a later version.
+
+
+
+Does this affect me?
+--------------------
+
+  1) Are you currently using IcnClipBrd 0.17 or earlier?
+
+  2) Have you customised IcbClipBrd in any way: for example altering the
+     active keypresses or changing the date and time format?
+
+  If the answer to either of these questions is "no", then these changes do
+  NOT affect you. You should proceed directly to upgrading, as described in
+  "How do I upgrade my copy of IcnClipBrd?" below.
+
+  However, if you are using IcnClipBrd on a version of RISC OS which supports
+  the clipboard in writable icons, you are advised to carefully read the
+  notes in "What if I'm using RISC OS 5.27 from 2020 or later, or RISC OS
+  Select?" below, and the corresponding section of the documentation.
+
+
+
+If I might be affected, what do I need to do?
+---------------------------------------------
+
+  Before upgrading your copy of IcnClipBrd, take a copy of the configuration,
+  which by default is stored in the !IcnClpBrd.Configure file. Once you have
+  completed the upgrade, you can then modify the new Configure file which
+  came with the update so that it has the same effect as your existing
+  configuration.
+
+
+
+How do I upgrade my copy of IcnClipBrd?
+---------------------------------------
+
+  IcnClipBrd can be upgraded in the usual way: delete the existing
+  application, and replace it with version 0.20 (or later).
+
+  If you copy the new application over the old, make sure that the new
+  !IcnClpBrd.Configure file is copied across and is not blocked by the
+  Filer's Newer setting.
+
+
+
+If I need to update my configuration, what do I do?
+---------------------------------------------------
+
+  IcnClipBrd 0.20 changes the way that it stores the key configurations so
+  that in addition to turning actions on and off, it is now possible to
+  set which keys those actions are bound to.
+
+  By default, the configuration is stored in the !IcnClpBrd.Configure file
+  which can be accessed by Shift-double-clicking on the !IcnClpBrd
+  application to open its directory. The file can then be loaded in to a
+  text editor with a Shift-double-click in the usual way.
+
+  The affected line within the file is the one which reads something like
+
+    IcnClipBrdKeys 2_0011111111
+
+  which has been replaced by a new version of the "*IcnClipBrdKeys" command
+  taking a list of option parameters in the usual RISC OS format instead of
+  a single bitwise flag value as before.
+
+  If the existing configuration uses the number "2_0011111111" as above, then
+  this is the default and the new configuration file can be left as it is
+  with all of its lines commented out using vertical bars ("|").
+
+  If the value is different, then a new "*IcnClipBrdKeys" command will need
+  to be built up by checking each of the digits of the old value in turn.
+
+
+  Creating a new configuration
+  ----------------------------
+
+  To create a new "*IcnClipBrdKeys" command, start with the command at the
+  start of a new line in the Configure file (perhaps use one of the example
+  lines in the file's comments as a template to work from):
+
+    IcnClipBrdKeys
+
+  Now check each digit in the old configuration and append options to the
+  command as necessary. If the highlighted digits are 0 and not 1, then
+  IcnClipBrd defaults to this behaviour and does not need to be told to apply
+  it.
+
+  * If the value contained 2_1xxxxxxxxx then add "-DateTime Ctrl-T".
+
+  * If the value contained 2_x1xxxxxxxx then add "-SwapCase Ctrl-s".
+
+  For example, if the original configuration was
+
+    IcnClipBrdKeys 2_1111111111
+
+  then this would result in a new configuration of
+
+    IcnClipBrdKeys -SwapCase Ctrl-S -DateTime Ctrl-T
+
+  The remaining digits are slightly different, as they default to being on
+  and need to be turned off if required. In this case, if the highlighted
+  digits are 1 then IcnClipBrd's default behaviour is correct and there is no
+  need to add a parameter to the configuration.
+
+  * If the value contained 2_xx0xxxxxxx then add "-Overwrite Off".
+
+  * If the value contained 2_xxx0xxxxxx then add "-Cut Off".
+
+  * If the value contained 2_xxxx0xxxxx then add "-Paste Off".
+
+  * If the value contained 2_xxxxx0xxxx then add "-Quote Off".
+
+  * If the value contained 2_xxxxxx0xxx then add "-DelLeft Off".
+
+  * If the value contained 2_xxxxxxx0xx then add "-Filename Off".
+
+  * If the value contained 2_xxxxxxxx0x then add "-Extension Off".
+
+  * If the value contained 2_xxxxxxxxx0 then add "-Copy Off".
+
+  For example, if the original configuration was
+
+    IcnClipBrdKeys 2_0111111110
+
+  then this would result in a new configuration of
+
+    IcnClipBrdKeys -SwapCase Ctrl-S -Copy Off
+
+  The method of setting the date and time format, using a line similar to
+
+    Set IcnClipBrd$DateFormat %WE %DY%ST %MO %CE%YR
+
+  remains unchanged, so any existing configuration can be safely used with
+  IcnClipBrd 0.20 or later.
+
+
+
+What if I'm using RISC OS 5.27 from 2020 or later, or RISC OS Select?
+---------------------------------------------------------------------
+
+  Since 2020, RISC OS 5.27 has natively supported the global clipboard in
+  writable icons, in a similar manner to RISC OS Select (RISC OS 4 and Six).
+
+  On these systems, it is advisable to allow the Window Manager to handle
+  cut, copy and paste operations -- which can require additional changes
+  to the configuration. See the "Use on RISC OS 5 and RISC OS Select"
+  section of the documentation for details.
+
+
+
+Updates and Contacting Me
+-------------------------
+
+  If you have any comments about the 32-bit version of IcnClipBrd, or would
+  like to report any bugs that you find, you can email me at the address
+  below.
+
+  Any updates to the module will be made available on my website, at
+  http://www.stevefryatt.org.uk/software/clipboard/
+
+  Stephen Fryatt
+  email: steve@stevefryatt.org.uk
