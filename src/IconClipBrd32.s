@@ -11,7 +11,7 @@
 
 ; SWI Names
 
-	GET	$Include/SWINames
+	GET	$Include/AsmSWINames
 
 ; Service Calls
 
